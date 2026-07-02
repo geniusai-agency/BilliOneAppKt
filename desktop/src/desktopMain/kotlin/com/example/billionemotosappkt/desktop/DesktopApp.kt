@@ -83,10 +83,13 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import com.example.billionemotosappkt.shared.api.ApiConfig
+import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import com.example.billionemotosappkt.desktop.auth.AuthenticationContextResponse
 import com.example.billionemotosappkt.desktop.auth.DesktopAuthClient
 import com.example.billionemotosappkt.desktop.auth.DesktopAuthDialog
 import com.example.billionemotosappkt.desktop.auth.DesktopAuthMode
+import com.example.billionemotosappkt.desktop.auth.UserKind
 import com.example.billionemotosappkt.desktop.auth.toContext
 
 private data class DesktopSlide(
@@ -112,7 +115,7 @@ private enum class DesktopSection {
 	ONDE_ESTAMOS,
 }
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://fowl-lasting-goldfish.ngrok-free.app"
+private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
 
 @Composable
 fun BillioneDesktopApp() {
@@ -120,6 +123,14 @@ fun BillioneDesktopApp() {
 		System.getenv("BILLIONE_API_BASE_URL")?.takeIf { it.isNotBlank() } ?: DEFAULT_BILLIONE_API_BASE_URL
 	}
 	val authClient = remember(authBaseUrl) { DesktopAuthClient(authBaseUrl) }
+	val adminApi = remember(authBaseUrl, authClient) {
+		BillioneMotosApi(
+			ApiConfig(
+				baseUrl = authBaseUrl,
+				accessTokenProvider = { authClient.currentAccessToken() },
+			),
+		)
+	}
 	val scope = rememberCoroutineScope()
 	var authMode by remember { mutableStateOf<DesktopAuthMode?>(null) }
 	var authBusy by remember { mutableStateOf(false) }
@@ -133,7 +144,10 @@ fun BillioneDesktopApp() {
 	}
 
 	DisposableEffect(Unit) {
-		onDispose { authClient.close() }
+		onDispose {
+			authClient.close()
+			scope.launch { adminApi.close() }
+		}
 	}
 
 	MaterialTheme(
@@ -147,8 +161,23 @@ fun BillioneDesktopApp() {
 			outline = Color(0xFF3A443D),
 		),
 	) {
-		Surface(modifier = Modifier.fillMaxSize()) {
-			val slides = remember {
+Surface(modifier = Modifier.fillMaxSize()) {
+            if (authContext?.user?.kind == UserKind.INTERNAL) {
+                DesktopAdminDashboardScreen(
+                    authContext = authContext,
+                    api = adminApi,
+                    onOpenSite = { authContext = null },
+                    onLogout = {
+                        scope.launch {
+                            runCatching { authClient.logout() }
+                            authContext = null
+                        }
+                    },
+                )
+                return@Surface
+            }
+
+            val slides = remember {
 				listOf(
 					DesktopSlide(
 						title = "Viva mais *liberdade* de Billione Moto",

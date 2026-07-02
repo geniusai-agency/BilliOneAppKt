@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -20,8 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.billionemotosappkt.desktop.auth.AuthenticationContextResponse
 import com.example.billionemotosappkt.desktop.auth.DesktopAuthClient
+import com.example.billionemotosappkt.desktop.auth.UserKind
+import com.example.billionemotosappkt.shared.api.ApiConfig
+import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import kotlinx.coroutines.launch
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://fowl-lasting-goldfish.ngrok-free.app"
+private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
 
 @Composable
 fun BillioneDesktopPortalApp() {
@@ -29,6 +34,15 @@ fun BillioneDesktopPortalApp() {
         System.getenv("BILLIONE_API_BASE_URL")?.takeIf { it.isNotBlank() } ?: DEFAULT_BILLIONE_API_BASE_URL
     }
     val authClient = remember(authBaseUrl) { DesktopAuthClient(authBaseUrl) }
+    val adminApi = remember(authBaseUrl, authClient) {
+        BillioneMotosApi(
+            ApiConfig(
+                baseUrl = authBaseUrl,
+                accessTokenProvider = { authClient.currentAccessToken() },
+            ),
+        )
+    }
+    val scope = rememberCoroutineScope()
     var screen by remember { mutableStateOf(DesktopPortalScreen.ADMIN_LOGIN) }
     var bootstrapping by remember { mutableStateOf(true) }
     var restoredSession by remember { mutableStateOf<AuthenticationContextResponse?>(null) }
@@ -38,7 +52,11 @@ fun BillioneDesktopPortalApp() {
             .onSuccess { session ->
                 restoredSession = session
                 if (session != null) {
-                    screen = DesktopPortalScreen.SITE
+                    screen = if (session.user.kind == UserKind.INTERNAL) {
+                        DesktopPortalScreen.ADMIN_DASHBOARD
+                    } else {
+                        DesktopPortalScreen.SITE
+                    }
                 }
             }
             .onFailure { restoredSession = null }
@@ -46,7 +64,10 @@ fun BillioneDesktopPortalApp() {
     }
 
     DisposableEffect(Unit) {
-        onDispose { authClient.close() }
+        onDispose {
+            authClient.close()
+            scope.launch { adminApi.close() }
+        }
     }
 
     MaterialTheme(
@@ -72,7 +93,19 @@ fun BillioneDesktopPortalApp() {
                             onBackToSite = { screen = DesktopPortalScreen.SITE },
                             onAuthenticated = {
                                 restoredSession = it
-                                screen = DesktopPortalScreen.SITE
+                                screen = DesktopPortalScreen.ADMIN_DASHBOARD
+                            },
+                        )
+                        DesktopPortalScreen.ADMIN_DASHBOARD -> DesktopAdminDashboardScreen(
+                            authContext = restoredSession,
+                            api = adminApi,
+                            onOpenSite = { screen = DesktopPortalScreen.SITE },
+                            onLogout = {
+                                scope.launch {
+                                    runCatching { authClient.logout() }
+                                    restoredSession = null
+                                    screen = DesktopPortalScreen.ADMIN_LOGIN
+                                }
                             },
                         )
                         DesktopPortalScreen.SITE -> BillioneDesktopApp()

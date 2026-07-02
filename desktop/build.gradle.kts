@@ -17,6 +17,8 @@ kotlin {
 				implementation(compose.desktop.currentOs)
 				implementation(compose.material3)
 				implementation(compose.materialIconsExtended)
+				implementation("org.jetbrains.compose.ui:ui-tooling-preview")
+				implementation(project(":shared"))
 				implementation(libs.ktor.client.cio)
 				implementation(libs.ktor.client.content.negotiation)
 				implementation(libs.ktor.serialization.kotlinx.json)

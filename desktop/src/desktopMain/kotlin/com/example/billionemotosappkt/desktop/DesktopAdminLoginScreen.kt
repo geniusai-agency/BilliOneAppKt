@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +41,10 @@ import com.example.billionemotosappkt.desktop.auth.DesktopAuthClient
 import com.example.billionemotosappkt.desktop.auth.UserKind
 import com.example.billionemotosappkt.desktop.auth.UserStatus
 import com.example.billionemotosappkt.desktop.auth.toContext
+import com.example.billionemotosappkt.desktop.admin.components.AdminLoginCard
+import com.example.billionemotosappkt.desktop.admin.components.AmbientOrb
+import com.example.billionemotosappkt.desktop.admin.components.BrandSidePanel
+import com.example.billionemotosappkt.desktop.admin.components.TopLeftExitButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -173,19 +176,18 @@ fun DesktopAdminLoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = surfaceHorizontalPadding, vertical = surfaceVerticalPadding),
+                horizontalArrangement = if (showBrandPanel) Arrangement.spacedBy(36.dp) else Arrangement.Center,
             ) {
                 if (showBrandPanel) {
                     BrandSidePanel(
                         modifier = Modifier
-                            .weight(1f)
                             .fillMaxHeight()
-                            .padding(end = 36.dp),
+                            .widthIn(min = 420.dp, max = 520.dp),
                     )
                 }
 
                 Box(
                     modifier = Modifier
-                        .weight(if (showBrandPanel) 0.92f else 1f)
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center,
                 ) {
