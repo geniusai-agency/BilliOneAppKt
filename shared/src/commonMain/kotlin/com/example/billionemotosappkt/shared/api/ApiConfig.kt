@@ -9,6 +9,6 @@ package com.example.billionemotosappkt.shared.api
 data class ApiConfig(
     val baseUrl: String,
     val accessTokenProvider: () -> String? = { null },
-    val defaultHeaders: Map<String, String> = emptyMap(),
+    val defaultHeaders: Map<String, String> = mapOf("ngrok-skip-browser-warning" to "true"),
     val requestTimeoutMillis: Long = 30_000,
 )

@@ -26,7 +26,7 @@ import com.example.billionemotosappkt.shared.api.ApiConfig
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
+private const val DEFAULT_BILLIONE_API_BASE_URL = "https://fowl-lasting-goldfish.ngrok-free.app"
 
 @Composable
 fun BillioneDesktopPortalApp() {
@@ -99,6 +99,8 @@ fun BillioneDesktopPortalApp() {
                         DesktopPortalScreen.ADMIN_DASHBOARD -> DesktopAdminDashboardScreen(
                             authContext = restoredSession,
                             api = adminApi,
+                            apiBaseUrl = authBaseUrl,
+                            apiAccessToken = authClient.currentAccessToken(),
                             onOpenSite = { screen = DesktopPortalScreen.SITE },
                             onLogout = {
                                 scope.launch {

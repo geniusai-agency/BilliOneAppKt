@@ -68,6 +68,13 @@ enum class AdminSection(
     RELATORIOS("Relatórios", "Indicadores e exportações da operação.");
 }
 
+enum class MotoSectionTab(
+    val label: String,
+) {
+    FROTA("Frota"),
+    MODELOS("Modelos"),
+}
+
 val adminNavItems = listOf(
     AdminNavItem(AdminSection.DASHBOARD, "Dashboard", Icons.Default.Dashboard),
     AdminNavItem(AdminSection.CLIENTES, "Clientes", Icons.Default.Groups),

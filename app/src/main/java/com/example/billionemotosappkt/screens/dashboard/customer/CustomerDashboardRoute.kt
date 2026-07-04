@@ -414,12 +414,12 @@ private fun RequestAnalysisDialog(
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
 				}
-				if (availableModels.isNotEmpty()) {
-					Text(
-						text = "Modelos disponíveis: ${availableModels.take(5).joinToString { it.modelo }}",
-						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-					)
+					if (availableModels.isNotEmpty()) {
+						Text(
+							text = "Modelos disponíveis: ${availableModels.take(5).joinToString { it.nome ?: it.modelo ?: it.id.orEmpty() }}",
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+						)
 				}
 				Button(onClick = onSubmit, enabled = !isSubmitting) {
 					Text(if (isSubmitting) "Enviando..." else "Enviar análise")

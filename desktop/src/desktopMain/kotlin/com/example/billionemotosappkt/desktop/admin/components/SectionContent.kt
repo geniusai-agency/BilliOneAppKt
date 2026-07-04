@@ -3,6 +3,7 @@ package com.example.billionemotosappkt.desktop.admin.components
 import androidx.compose.runtime.Composable
 import com.example.billionemotosappkt.desktop.admin.clientes.screens.ClientesSection
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
+import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.desktop.admin.screens.ContratosJuridicosSection
 import com.example.billionemotosappkt.desktop.admin.screens.ContratosSection
 import com.example.billionemotosappkt.desktop.admin.screens.FinanceiroSection
@@ -20,13 +21,23 @@ fun SectionContent(
     snapshot: com.example.billionemotosappkt.desktop.admin.model.AdminDashboardSnapshot,
     compact: Boolean,
     api: BillioneMotosApi,
+    apiBaseUrl: String,
+    apiAccessToken: String?,
+    motoTab: MotoSectionTab,
+    onMotoTabChange: (MotoSectionTab) -> Unit,
 ) {
     when (section) {
         AdminSection.DASHBOARD -> DashboardSection(snapshot = snapshot, compact = compact)
         AdminSection.CLIENTES -> ClientesSection(api = api, compact = compact)
-        AdminSection.MOTOS -> MotosSection()
+        AdminSection.MOTOS -> MotosSection(
+            api = api,
+            apiBaseUrl = apiBaseUrl,
+            apiAccessToken = apiAccessToken,
+            selectedTab = motoTab,
+            onTabChange = onMotoTabChange,
+        )
         AdminSection.RASTREAMENTO -> RastreamentoSection()
-        AdminSection.CONTRATOS -> ContratosSection(snapshot = snapshot)
+        AdminSection.CONTRATOS -> ContratosSection(snapshot = snapshot, api = api)
         AdminSection.CONTRATOS_JURIDICOS -> ContratosJuridicosSection()
         AdminSection.FINANCEIRO -> FinanceiroSection(snapshot = snapshot)
         AdminSection.SANTANDER -> SantanderSection()

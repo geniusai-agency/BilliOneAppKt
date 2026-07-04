@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Search
@@ -41,13 +42,16 @@ import androidx.compose.ui.unit.sp
 import com.example.billionemotosappkt.desktop.auth.AuthenticationContextResponse
 import com.example.billionemotosappkt.desktop.admin.model.AdminNavItem
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
+import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.adminNavItems
 
 @Composable
 fun AdminSidebar(
     authContext: AuthenticationContextResponse?,
     section: AdminSection,
+    motoTab: MotoSectionTab,
     onSectionChange: (AdminSection) -> Unit,
+    onMotoTabChange: (MotoSectionTab) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -116,6 +120,13 @@ fun AdminSidebar(
                         selected = item.section == section,
                         onClick = { onSectionChange(item.section) },
                     )
+                    if (item.section == AdminSection.MOTOS) {
+                        MotosSidebarSubitems(
+                            visible = section == AdminSection.MOTOS,
+                            selectedTab = motoTab,
+                            onTabChange = onMotoTabChange,
+                        )
+                    }
                 }
             }
         }
@@ -151,6 +162,43 @@ fun CompactNavigationBar(
             ) {
                 Text(
                     text = item.label,
+                    color = if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.84f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MotoSubsectionBar(
+    selectedTab: MotoSectionTab,
+    onTabChange: (MotoSectionTab) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        MotoSectionTab.entries.forEach { tab ->
+            val selected = selectedTab == tab
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (selected) Color(0xFF0F1711) else Color(0xFF0A0F0B))
+                    .border(
+                        1.dp,
+                        if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.07f),
+                        RoundedCornerShape(999.dp),
+                    )
+                    .clickable { onTabChange(tab) }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    text = tab.label,
                     color = if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.84f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -371,5 +419,55 @@ private fun SidebarNavItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+@Composable
+private fun MotosSidebarSubitems(
+    visible: Boolean,
+    selectedTab: MotoSectionTab,
+    onTabChange: (MotoSectionTab) -> Unit,
+) {
+    if (!visible) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 4.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        MotoSectionTab.entries.forEach { tab ->
+            val selected = tab == selectedTab
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) Color(0xFF0F1711) else Color.Transparent)
+                    .clickable { onTabChange(tab) }
+                    .padding(horizontal = 10.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.35f)),
+                )
+                Text(
+                    text = tab.label,
+                    color = if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.72f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.25f),
+                    modifier = Modifier.size(15.dp),
+                )
+            }
+        }
     }
 }

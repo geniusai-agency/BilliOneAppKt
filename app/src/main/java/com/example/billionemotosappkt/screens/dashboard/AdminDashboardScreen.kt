@@ -442,10 +442,38 @@ private fun AdminListsSection(
 ) {
     val sections = listOf(
         ListSectionModel(
-            title = "Contratos vencendo",
-            subtitle = "Vigencia e risco de renovacao.",
+            title = "Clientes",
+            subtitle = "Cadastro e aprovacao vindos da API.",
+            icon = Icons.Default.Groups,
+            items = overview.clientesRecentes.take(5).map { client ->
+                ListItemModel(
+                    title = clientLabel(client),
+                    subtitle = clientSubLabel(client),
+                    value = formatDate(client.createdAt) ?: client.id.take(8),
+                    status = clientStatusLabel(client.statusAprovacao),
+                    tint = accentForClient(client.statusAprovacao),
+                )
+            },
+        ),
+        ListSectionModel(
+            title = "Motos",
+            subtitle = "Frota, placa e disponibilidade.",
+            icon = Icons.Default.DirectionsBike,
+            items = overview.motosRecentes.take(5).map { moto ->
+                ListItemModel(
+                    title = motoLabel(moto),
+                    subtitle = motoSubLabel(moto),
+                    value = "${moto.kmAtual} km",
+                    status = motoStatusLabel(moto.status),
+                    tint = accentForMoto(moto.status),
+                )
+            },
+        ),
+        ListSectionModel(
+            title = "Contratos",
+            subtitle = "Status e vigencia dos contratos.",
             icon = Icons.Default.Schedule,
-            items = overview.contratosVencendo.take(5).map { contract ->
+            items = overview.contratosRecentes.take(5).map { contract ->
                 ListItemModel(
                     title = contractLabel(contract),
                     subtitle = contractSubLabel(contract),
@@ -456,7 +484,7 @@ private fun AdminListsSection(
             },
         ),
         ListSectionModel(
-            title = "Pagamentos recentes",
+            title = "Pagamentos",
             subtitle = "Ultimos recebimentos processados.",
             icon = Icons.Default.CreditCard,
             items = overview.pagamentosRecentes.take(5).map { payment ->

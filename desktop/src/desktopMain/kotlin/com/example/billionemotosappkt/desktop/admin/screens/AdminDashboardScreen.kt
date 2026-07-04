@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,21 +24,32 @@ import androidx.compose.ui.unit.dp
 import com.example.billionemotosappkt.desktop.auth.AuthenticationContextResponse
 import com.example.billionemotosappkt.desktop.admin.components.AdminSidebar
 import com.example.billionemotosappkt.desktop.admin.components.CompactNavigationBar
+import com.example.billionemotosappkt.desktop.admin.components.MotoSubsectionBar
 import com.example.billionemotosappkt.desktop.admin.components.SectionContent
 import com.example.billionemotosappkt.desktop.admin.components.TopCommandBar
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
+import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.adminDashboardSnapshot
+import com.example.billionemotosappkt.desktop.admin.repository.AdminDashboardRepository
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 
 @Composable
 fun AdminDashboardScreen(
     authContext: AuthenticationContextResponse?,
     api: BillioneMotosApi,
+    apiBaseUrl: String,
+    apiAccessToken: String?,
     onOpenSite: () -> Unit,
     onLogout: () -> Unit,
 ) {
-    val snapshot = remember { adminDashboardSnapshot() }
+    var snapshot by remember { mutableStateOf(adminDashboardSnapshot()) }
     var section by remember { mutableStateOf(AdminSection.DASHBOARD) }
+    var motoTab by remember { mutableStateOf(MotoSectionTab.FROTA) }
+
+    LaunchedEffect(api) {
+        runCatching { AdminDashboardRepository(api).loadSnapshot() }
+            .onSuccess { snapshot = it }
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -72,8 +84,25 @@ fun AdminDashboardScreen(
                             onSectionChange = { section = it },
                         )
                     }
+                    if (section == AdminSection.MOTOS) {
+                        item {
+                            MotoSubsectionBar(
+                                selectedTab = motoTab,
+                                onTabChange = { motoTab = it },
+                            )
+                        }
+                    }
                     item {
-                        SectionContent(section = section, snapshot = snapshot, compact = true, api = api)
+                        SectionContent(
+                            section = section,
+                            snapshot = snapshot,
+                            compact = true,
+                            api = api,
+                            apiBaseUrl = apiBaseUrl,
+                            apiAccessToken = apiAccessToken,
+                            motoTab = motoTab,
+                            onMotoTabChange = { motoTab = it },
+                        )
                     }
                 }
             } else {
@@ -81,9 +110,11 @@ fun AdminDashboardScreen(
                     AdminSidebar(
                         authContext = authContext,
                         section = section,
+                        motoTab = motoTab,
                         onSectionChange = { section = it },
+                        onMotoTabChange = { motoTab = it },
                         onLogout = onLogout,
-                        modifier = Modifier.width(252.dp),
+                        modifier = Modifier.width(252.dp).fillMaxHeight(),
                     )
 
                     LazyColumn(
@@ -101,8 +132,25 @@ fun AdminDashboardScreen(
                                 onOpenSite = onOpenSite,
                             )
                         }
+                        if (section == AdminSection.MOTOS) {
+                            item {
+                                MotoSubsectionBar(
+                                    selectedTab = motoTab,
+                                    onTabChange = { motoTab = it },
+                                )
+                            }
+                        }
                         item {
-                            SectionContent(section = section, snapshot = snapshot, compact = false, api = api)
+                            SectionContent(
+                                section = section,
+                                snapshot = snapshot,
+                                compact = false,
+                                api = api,
+                                apiBaseUrl = apiBaseUrl,
+                                apiAccessToken = apiAccessToken,
+                                motoTab = motoTab,
+                                onMotoTabChange = { motoTab = it },
+                            )
                         }
                     }
                 }

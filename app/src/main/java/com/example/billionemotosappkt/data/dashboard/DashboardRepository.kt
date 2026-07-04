@@ -2,13 +2,17 @@ package com.example.billionemotosappkt.data.dashboard
 
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import com.example.billionemotosappkt.shared.api.ApiException
+import com.example.billionemotosappkt.shared.api.ClienteResponse
 import com.example.billionemotosappkt.shared.api.ContratoResponse
 import com.example.billionemotosappkt.shared.api.ContratoStatus
+import com.example.billionemotosappkt.shared.api.ListClientesQuery
 import com.example.billionemotosappkt.shared.api.ListContratosQuery
 import com.example.billionemotosappkt.shared.api.ListManutencoesQuery
+import com.example.billionemotosappkt.shared.api.ListMotosQuery
 import com.example.billionemotosappkt.shared.api.ListPagamentosQuery
 import com.example.billionemotosappkt.shared.api.ListTicketsQuery
 import com.example.billionemotosappkt.shared.api.ManutencaoResponse
+import com.example.billionemotosappkt.shared.api.MotoResponse
 import com.example.billionemotosappkt.shared.api.PagamentoResponse
 import com.example.billionemotosappkt.shared.api.PagedResponse
 import com.example.billionemotosappkt.shared.api.RelatorioResumoResponse
@@ -23,6 +27,9 @@ import kotlin.math.ceil
 
 data class DashboardOverviewData(
     val resumo: RelatorioResumoResponse,
+    val clientesRecentes: List<ClienteResponse>,
+    val motosRecentes: List<MotoResponse>,
+    val contratosRecentes: List<ContratoResponse>,
     val contratosVencendo: List<ContratoResponse>,
     val pagamentosRecentes: List<PagamentoResponse>,
     val manutencoesRecentes: List<ManutencaoResponse>,
@@ -35,6 +42,40 @@ class DashboardRepository(
     suspend fun loadOverview(): DashboardOverviewData = coroutineScope {
         println("[DashboardRepository] loadOverview started")
         val resumo = async { api.relatorios.resumo() }
+        val clientes = async {
+            println("[DashboardRepository] loading clientes")
+            loadPagedOrEmpty("clientes") {
+                api.clientes.list(
+                    ListClientesQuery(
+                        page = 1,
+                        limit = 10,
+                    ),
+                )
+            }
+        }
+        val motos = async {
+            println("[DashboardRepository] loading motos")
+            loadPagedOrEmpty("motos") {
+                api.motos.list(
+                    ListMotosQuery(
+                        page = 1,
+                        limit = 10,
+                    ),
+                )
+            }
+        }
+        val contratosRecentes = async {
+            println("[DashboardRepository] loading contratos recentes")
+            loadPagedOrEmpty("contratos recentes") {
+                api.contratos.list(
+                    ListContratosQuery(
+                        includeRelations = true,
+                        page = 1,
+                        limit = 10,
+                    ),
+                )
+            }
+        }
         val contratosAtivos = async {
             println("[DashboardRepository] loading contratos ativos")
             loadPagedOrEmpty("contratos ativos") {
@@ -104,6 +145,9 @@ class DashboardRepository(
 
         DashboardOverviewData(
             resumo = resumo.await(),
+            clientesRecentes = clientes.await().items,
+            motosRecentes = motos.await().items,
+            contratosRecentes = contratosRecentes.await().items,
             contratosVencendo = contratosVencendo,
             pagamentosRecentes = pagamentos.await().items,
             manutencoesRecentes = manutencoes.await().items,

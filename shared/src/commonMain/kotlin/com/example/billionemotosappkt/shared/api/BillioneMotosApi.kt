@@ -2,13 +2,13 @@ package com.example.billionemotosappkt.shared.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.FormBuilder
+import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.request
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
@@ -84,7 +84,6 @@ class BillioneMotosApi(
 
         val rawBody = response.bodyAsText()
         if (response.status.value !in 200..299) {
-            logResponseError(method, path, response.status.value, rawBody)
             throw mapException(response.status.value, rawBody)
         }
 
@@ -257,7 +256,59 @@ class BillioneMotosApi(
             call(HttpMethod.Get, "/motos/disponiveis", query = query.toQueryMap())
 
         suspend fun modelos(): List<MotoModeloResponse> =
-            call(HttpMethod.Get, "/motos/modelos", authorized = false)
+            call(HttpMethod.Get, "/modelos-moto", authorized = false)
+
+        suspend fun getModelo(id: String): MotoModeloResponse =
+            call(HttpMethod.Get, "/modelos-moto/$id", authorized = false)
+
+        suspend fun createModelo(
+            request: CreateMotoModeloRequest,
+            imagemReferenciaImage: UploadFileRequest? = null,
+        ): MotoModeloResponse =
+            multipartCall<MotoModeloResponse>(HttpMethod.Post, "/modelos-moto") {
+                appendText("marca", request.marca)
+                appendText("nome", request.nome)
+                appendText("cilindrada", request.cilindrada?.toString())
+                appendText("precoInicial", request.precoInicial)
+                appendText("combustivel", request.combustivel)
+                appendText("categoria", request.categoria)
+                appendText("tipo", request.tipo)
+                appendText("ano", request.ano?.toString())
+                appendText("codigoFipe", request.codigoFipe)
+                appendText("descricao", request.descricao)
+                if (imagemReferenciaImage != null) {
+                    appendFile("file", imagemReferenciaImage)
+                }
+            }
+
+        suspend fun updateModelo(
+            id: String,
+            request: UpdateMotoModeloRequest,
+            imagemReferenciaImage: UploadFileRequest? = null,
+        ): MotoModeloResponse =
+            multipartCall<MotoModeloResponse>(HttpMethod.Patch, "/modelos-moto/$id") {
+                appendText("marca", request.marca)
+                appendText("nome", request.nome)
+                appendText("cilindrada", request.cilindrada?.toString())
+                appendText("precoInicial", request.precoInicial)
+                appendText("combustivel", request.combustivel)
+                appendText("categoria", request.categoria)
+                appendText("tipo", request.tipo)
+                appendText("ano", request.ano?.toString())
+                appendText("codigoFipe", request.codigoFipe)
+                appendText("descricao", request.descricao)
+                imagemReferenciaImage?.let {
+                    appendFile("file", it)
+                }
+            }
+        
+        
+
+        suspend fun deleteModelo(id: String): MotoModeloResponse =
+            call(HttpMethod.Patch, "/modelos-moto/$id/desativar")
+
+        suspend fun activateModelo(id: String): MotoModeloResponse =
+            call(HttpMethod.Patch, "/modelos-moto/$id/ativar")
 
         suspend fun get(id: String): MotoResponse =
             call(HttpMethod.Get, "/motos/$id")
@@ -401,13 +452,20 @@ class BillioneMotosApi(
     ): T {
         logRequest(method, path, emptyMap(), "[multipart]", authorized)
 
-        val response: HttpResponse = client.submitFormWithBinaryData(
-            url = config.baseUrl.trimEnd('/') + "/" + path.trimStart('/'),
-            formData = formData {
-                build()
-            },
-        ) {
+        val response: HttpResponse = client.request {
             this.method = method
+            url {
+                takeFrom(config.baseUrl)
+                val segments = path.trim('/').split('/').filter { it.isNotBlank() }
+                appendPathSegments(*segments.toTypedArray())
+            }
+            setBody(
+                MultiPartFormDataContent(
+                    parts = formData {
+                        build()
+                    },
+                ),
+            )
             config.defaultHeaders.forEach { (key, value) ->
                 header(key, value)
             }
@@ -420,7 +478,6 @@ class BillioneMotosApi(
 
         val rawBody = response.bodyAsText()
         if (response.status.value !in 200..299) {
-            logResponseError(method, path, response.status.value, rawBody)
             throw mapException(response.status.value, rawBody)
         }
 
@@ -447,20 +504,6 @@ class BillioneMotosApi(
         body: Any?,
         authorized: Boolean,
     ) {
-        val queryText = if (query.isEmpty()) "" else query.entries.joinToString(prefix = " query=", separator = ", ") { (key, value) ->
-            "$key=${valuePreview(value)}"
-        }
-        val bodyText = if (body == null) "body=<none>" else "body=${body::class.simpleName ?: body.toString()}"
-        println("[BillioneMotosApi] -> ${method.value} $path$queryText $bodyText authorized=$authorized")
-    }
-
-    private fun logResponseError(
-        method: HttpMethod,
-        path: String,
-        statusCode: Int,
-        rawBody: String,
-    ) {
-        println("[BillioneMotosApi] <- ${method.value} $path status=$statusCode body=${rawBody.preview(2000)}")
     }
 
     private fun logDecodeFailure(
@@ -470,10 +513,6 @@ class BillioneMotosApi(
         rawBody: String,
         error: Throwable,
     ) {
-        println(
-            "[BillioneMotosApi] !! decode failed for ${method.value} $path status=$statusCode error=${error::class.simpleName}: ${error.message}"
-        )
-        println("[BillioneMotosApi] !! raw body for ${method.value} $path: ${rawBody.preview(4000)}")
     }
 
     private fun valuePreview(value: Any?): String {
@@ -512,13 +551,13 @@ private fun FormBuilder.appendText(name: String, value: String?) {
 
 private fun FormBuilder.appendFile(name: String, file: UploadFileRequest) {
     append(
-        name,
-        file.bytes,
-        Headers.build {
-            append(HttpHeaders.ContentType, file.contentType)
-            append(HttpHeaders.ContentDisposition, "filename=\"${file.fileName}\"")
-        },
-    )
+        key = name,
+        filename = file.fileName,
+        contentType = ContentType.parse(file.contentType),
+        size = file.bytes.size.toLong(),
+    ) {
+        write(file.bytes)
+    }
 }
 
 private fun ListUsersQuery.toQueryMap(): Map<String, Any?> = mapOf(

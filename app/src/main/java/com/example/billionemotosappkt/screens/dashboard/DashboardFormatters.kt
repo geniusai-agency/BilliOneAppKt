@@ -31,10 +31,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.billionemotosappkt.data.dashboard.DashboardOverviewData
+import com.example.billionemotosappkt.shared.api.ClienteAprovacaoStatus
+import com.example.billionemotosappkt.shared.api.ClienteResponse
 import com.example.billionemotosappkt.shared.api.ContratoResponse
 import com.example.billionemotosappkt.shared.api.ContratoStatus
 import com.example.billionemotosappkt.shared.api.ManutencaoResponse
 import com.example.billionemotosappkt.shared.api.ManutencaoStatus
+import com.example.billionemotosappkt.shared.api.MotoResponse
+import com.example.billionemotosappkt.shared.api.MotoStatus
 import com.example.billionemotosappkt.shared.api.PagamentoResponse
 import com.example.billionemotosappkt.shared.api.PagamentoStatus
 import com.example.billionemotosappkt.shared.api.TicketPrioridade
@@ -164,7 +168,9 @@ fun contractLabel(contract: ContratoResponse): String {
 fun contractSubLabel(contract: ContratoResponse): String {
     val plate = contract.moto?.placa?.takeIf { it.isNotBlank() }
     val periodicity = when (contract.periodicidade) {
+        com.example.billionemotosappkt.shared.api.ContratoPeriodicidade.DIARIA -> "Diaria"
         com.example.billionemotosappkt.shared.api.ContratoPeriodicidade.SEMANAL -> "Semanal"
+        com.example.billionemotosappkt.shared.api.ContratoPeriodicidade.QUINZENAL -> "Quinzenal"
         com.example.billionemotosappkt.shared.api.ContratoPeriodicidade.MENSAL -> "Mensal"
     }
     return listOfNotNull(
@@ -185,6 +191,48 @@ fun contractStatusLabel(status: ContratoStatus): String = when (status) {
     ContratoStatus.ENCERRADO -> "Encerrado"
     ContratoStatus.INADIMPLENTE -> "Inadimplente"
     ContratoStatus.CANCELADO -> "Cancelado"
+}
+
+fun clientLabel(client: ClienteResponse): String = client.nome.ifBlank { client.id.take8() }
+
+fun clientSubLabel(client: ClienteResponse): String {
+    return listOfNotNull(
+        client.cpf.takeIf { it.isNotBlank() }?.let { "CPF $it" },
+        client.email?.takeIf { it.isNotBlank() },
+        listOfNotNull(client.cidade, client.estado).joinToString("/").takeIf { it.isNotBlank() },
+    ).joinToString(" • ")
+}
+
+fun clientStatusLabel(status: ClienteAprovacaoStatus): String = when (status) {
+    ClienteAprovacaoStatus.PENDENTE -> "Pendente"
+    ClienteAprovacaoStatus.EM_ANALISE -> "Em analise"
+    ClienteAprovacaoStatus.APROVADO -> "Aprovado"
+    ClienteAprovacaoStatus.APROVADO_COM_RESSALVA -> "Ressalva"
+    ClienteAprovacaoStatus.REPROVADO -> "Reprovado"
+}
+
+fun motoLabel(moto: MotoResponse): String = listOfNotNull(
+    moto.marca?.takeIf { it.isNotBlank() },
+    moto.modelo.takeIf { it.isNotBlank() },
+).joinToString(" ").ifBlank { moto.id.take8() }
+
+fun motoSubLabel(moto: MotoResponse): String {
+    return listOfNotNull(
+        moto.placa.takeIf { it.isNotBlank() }?.let { "Placa $it" },
+        moto.ano?.toString(),
+        moto.cor?.takeIf { it.isNotBlank() },
+        moto.rastreador?.takeIf { it.ativo }?.let { "Rastreador ativo" },
+    ).joinToString(" • ")
+}
+
+fun motoStatusLabel(status: MotoStatus): String = when (status) {
+    MotoStatus.DISPONIVEL -> "Disponivel"
+    MotoStatus.PENDENTE_CONTRATO -> "Pendente contrato"
+    MotoStatus.CONTRATADA -> "Contratada"
+    MotoStatus.ALUGADA -> "Alugada"
+    MotoStatus.AGUARDANDO_DEVOLUCAO -> "Aguardando devolucao"
+    MotoStatus.BLOQUEADA -> "Bloqueada"
+    MotoStatus.MANUTENCAO -> "Manutencao"
 }
 
 fun paymentLabel(payment: PagamentoResponse): String {
@@ -261,6 +309,24 @@ fun accentForContract(status: ContratoStatus): Color = when (status) {
     ContratoStatus.ENCERRADO -> Color(0xFF94A3B8)
     ContratoStatus.INADIMPLENTE -> Color(0xFFEF4444)
     ContratoStatus.CANCELADO -> Color(0xFF64748B)
+}
+
+fun accentForClient(status: ClienteAprovacaoStatus): Color = when (status) {
+    ClienteAprovacaoStatus.APROVADO -> Color(0xFF22C55E)
+    ClienteAprovacaoStatus.APROVADO_COM_RESSALVA -> Color(0xFF84CC16)
+    ClienteAprovacaoStatus.EM_ANALISE -> Color(0xFFF59E0B)
+    ClienteAprovacaoStatus.PENDENTE -> Color(0xFF38BDF8)
+    ClienteAprovacaoStatus.REPROVADO -> Color(0xFFEF4444)
+}
+
+fun accentForMoto(status: MotoStatus): Color = when (status) {
+    MotoStatus.DISPONIVEL -> Color(0xFF22C55E)
+    MotoStatus.PENDENTE_CONTRATO -> Color(0xFFF59E0B)
+    MotoStatus.CONTRATADA -> Color(0xFF14B8A6)
+    MotoStatus.ALUGADA -> Color(0xFF38BDF8)
+    MotoStatus.AGUARDANDO_DEVOLUCAO -> Color(0xFFF97316)
+    MotoStatus.BLOQUEADA -> Color(0xFFEF4444)
+    MotoStatus.MANUTENCAO -> Color(0xFFA855F7)
 }
 
 fun accentForPayment(status: PagamentoStatus): Color = when (status) {

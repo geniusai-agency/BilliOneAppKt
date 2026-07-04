@@ -92,7 +92,7 @@ fun ClientesSection(
             .onFailure { error ->
                 uiState = ClientesUiState(
                     isLoading = false,
-                    isFallbackData = true,
+                    isFallbackData = false,
                     errorMessage = error.message ?: "Falha ao carregar clientes.",
                     clientes = emptyList(),
                 )

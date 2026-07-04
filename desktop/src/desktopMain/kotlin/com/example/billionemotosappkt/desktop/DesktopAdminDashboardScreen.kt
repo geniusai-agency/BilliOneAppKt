@@ -9,12 +9,16 @@ import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 fun DesktopAdminDashboardScreen(
     authContext: AuthenticationContextResponse?,
     api: BillioneMotosApi,
+    apiBaseUrl: String,
+    apiAccessToken: String?,
     onOpenSite: () -> Unit,
     onLogout: () -> Unit,
 ) {
     AdminDashboardScreen(
         authContext = authContext,
         api = api,
+        apiBaseUrl = apiBaseUrl,
+        apiAccessToken = apiAccessToken,
         onOpenSite = onOpenSite,
         onLogout = onLogout,
     )

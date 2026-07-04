@@ -1,11 +1,5 @@
 package com.example.billionemotosappkt.desktop
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
@@ -29,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -42,7 +34,6 @@ import com.example.billionemotosappkt.desktop.auth.UserKind
 import com.example.billionemotosappkt.desktop.auth.UserStatus
 import com.example.billionemotosappkt.desktop.auth.toContext
 import com.example.billionemotosappkt.desktop.admin.components.AdminLoginCard
-import com.example.billionemotosappkt.desktop.admin.components.AmbientOrb
 import com.example.billionemotosappkt.desktop.admin.components.BrandSidePanel
 import com.example.billionemotosappkt.desktop.admin.components.TopLeftExitButton
 import kotlinx.coroutines.launch
@@ -56,7 +47,6 @@ fun DesktopAdminLoginScreen(
 ) {
     val scope = rememberCoroutineScope()
     val primary = Color(0xFF20E65B)
-    val amber = Color(0xFFD4AF37)
 
     var mode by rememberSaveable { mutableStateOf(DesktopLoginMode.LOGIN) }
     var email by rememberSaveable { mutableStateOf("") }
@@ -84,33 +74,12 @@ fun DesktopAdminLoginScreen(
         val compactLayout = maxWidth < 700.dp
         val surfaceHorizontalPadding = if (compactLayout) 16.dp else if (showBrandPanel) 56.dp else 20.dp
         val surfaceVerticalPadding = if (compactLayout) 18.dp else 32.dp
-        val pulseTransition = rememberInfiniteTransition(label = "admin_login_pulse")
-        val orbAlpha by pulseTransition.animateFloat(
-            initialValue = 0.35f,
-            targetValue = 0.55f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(5200, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "admin_login_orb_alpha",
-        )
-        val glowScale by pulseTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.08f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(6800, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "admin_login_orb_scale",
-        )
-
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
-                painter = painterResource("hero_bg_moto1.png"),
+                painter = painterResource("hero_bg_moto2.png"),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                colorFilter = ColorFilter.tint(Color.Black.copy(alpha = if (compactLayout) 0.16f else 0.22f)),
             )
 
             Box(
@@ -119,9 +88,9 @@ fun DesktopAdminLoginScreen(
                     .background(
                         Brush.horizontalGradient(
                             listOf(
-                                Color.Black.copy(alpha = if (compactLayout) 0.90f else 0.88f),
-                                Color.Black.copy(alpha = if (compactLayout) 0.72f else 0.65f),
-                                Color.Black.copy(alpha = if (compactLayout) 0.36f else 0.28f),
+                                Color.Black.copy(alpha = if (compactLayout) 0.88f else 0.82f),
+                                Color.Black.copy(alpha = if (compactLayout) 0.70f else 0.54f),
+                                Color.Black.copy(alpha = if (compactLayout) 0.44f else 0.18f),
                             ),
                         ),
                     ),
@@ -132,43 +101,13 @@ fun DesktopAdminLoginScreen(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                Color.Black.copy(alpha = 0.64f),
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.78f),
+                                Color.Black.copy(alpha = 0.48f),
+                                Color.Black.copy(alpha = 0.10f),
+                                Color.Black.copy(alpha = 0.70f),
                             ),
                         ),
                     ),
             )
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                AmbientOrb(
-                    alignment = Alignment.TopStart,
-                    color = primary,
-                    alpha = orbAlpha,
-                    scale = glowScale,
-                    size = 520.dp,
-                    offsetX = (-150).dp,
-                    offsetY = (-120).dp,
-                )
-                AmbientOrb(
-                    alignment = Alignment.TopEnd,
-                    color = amber,
-                    alpha = orbAlpha * 0.9f,
-                    scale = glowScale * 1.02f,
-                    size = 560.dp,
-                    offsetX = 160.dp,
-                    offsetY = 40.dp,
-                )
-                AmbientOrb(
-                    alignment = Alignment.BottomStart,
-                    color = primary,
-                    alpha = orbAlpha * 0.55f,
-                    scale = glowScale * 0.95f,
-                    size = 460.dp,
-                    offsetX = 40.dp,
-                    offsetY = 140.dp,
-                )
-            }
 
             TopLeftExitButton(onBackToSite = onBackToSite, compactLayout = compactLayout)
 
@@ -176,7 +115,8 @@ fun DesktopAdminLoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = surfaceHorizontalPadding, vertical = surfaceVerticalPadding),
-                horizontalArrangement = if (showBrandPanel) Arrangement.spacedBy(36.dp) else Arrangement.Center,
+                horizontalArrangement = if (showBrandPanel) Arrangement.SpaceBetween else Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (showBrandPanel) {
                     BrandSidePanel(
@@ -188,7 +128,8 @@ fun DesktopAdminLoginScreen(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .widthIn(min = 480.dp, max = 580.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     AdminLoginCard(

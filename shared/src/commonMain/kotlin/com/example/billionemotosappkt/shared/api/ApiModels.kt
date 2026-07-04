@@ -17,7 +17,7 @@ enum class UserStatus { ACTIVE, INVITED, PENDING_PASSWORD, SUSPENDED, ARCHIVED }
 enum class ClienteAprovacaoStatus { PENDENTE, EM_ANALISE, APROVADO, APROVADO_COM_RESSALVA, REPROVADO }
 
 @Serializable
-enum class ContratoPeriodicidade { SEMANAL, MENSAL }
+enum class ContratoPeriodicidade { DIARIA, SEMANAL, QUINZENAL, MENSAL }
 
 @Serializable
 enum class ContratoStatus { PENDENTE_ASSINATURA, ATIVO, ENCERRADO, INADIMPLENTE, CANCELADO }
@@ -100,7 +100,15 @@ enum class ManutencaoItemTipo { PECA, SERVICO }
 enum class ManutencaoItemCobranca { GARANTIA, CLIENTE }
 
 @Serializable
-enum class MotoStatus { DISPONIVEL, ALUGADA, BLOQUEADA, MANUTENCAO }
+enum class MotoStatus {
+    DISPONIVEL,
+    PENDENTE_CONTRATO,
+    CONTRATADA,
+    ALUGADA,
+    AGUARDANDO_DEVOLUCAO,
+    BLOQUEADA,
+    MANUTENCAO,
+}
 
 @Serializable
 enum class SantanderAmbiente { HOMOLOGACAO, PRODUCAO }
@@ -522,8 +530,21 @@ data class MotoCountsResponse(
 
 @Serializable
 data class MotoModeloResponse(
-    val modelo: String,
-    val totalMotos: Int,
+    val id: String? = null,
+    val marca: String? = null,
+    val nome: String? = null,
+    val cilindrada: Int? = null,
+    val precoInicial: String? = null,
+    val combustivel: String? = null,
+    val categoria: String? = null,
+    val tipo: String? = null,
+    val ano: Int? = null,
+    val codigoFipe: String? = null,
+    val descricao: String? = null,
+    val imagemReferenciaUrl: String? = null,
+    val fotoUrls: List<String> = emptyList(),
+    val modelo: String? = null,
+    val totalMotos: Int = 0,
     val marcas: List<String> = emptyList(),
     val anos: List<Int> = emptyList(),
     val cores: List<String> = emptyList(),
@@ -532,8 +553,40 @@ data class MotoModeloResponse(
 )
 
 @Serializable
+data class CreateMotoModeloRequest(
+    val marca: String,
+    val nome: String,
+    val cilindrada: Int? = null,
+    val precoInicial: String? = null,
+    val combustivel: String? = null,
+    val categoria: String? = null,
+    val tipo: String? = null,
+    val ano: Int? = null,
+    val codigoFipe: String? = null,
+    val descricao: String? = null,
+    val fotoUrls: List<String> = emptyList(),
+)
+
+@Serializable
+data class UpdateMotoModeloRequest(
+    val marca: String? = null,
+    val nome: String? = null,
+    val cilindrada: Int? = null,
+    val precoInicial: String? = null,
+    val combustivel: String? = null,
+    val categoria: String? = null,
+    val tipo: String? = null,
+    val ano: Int? = null,
+    val codigoFipe: String? = null,
+    val descricao: String? = null,
+    val imagemReferenciaUrl: String? = null,
+    val fotoUrls: List<String>? = null,
+)
+
+@Serializable
 data class MotoResponse(
     val id: String,
+    val modeloMotoId: String? = null,
     val modelo: String,
     val marca: String? = null,
     val placa: String,
@@ -545,9 +598,13 @@ data class MotoResponse(
     val status: MotoStatus,
     val logicaVeiculoId: String? = null,
     val observacoes: String? = null,
+    val fipePayload: JsonElement? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val rastreador: RastreadorResponse? = null,
+    val modeloMoto: MotoModeloResponse? = null,
+    val fotoUrls: List<String> = emptyList(),
+    val fotoPrincipalUrl: String? = null,
     val count: MotoCountsResponse? = null,
 )
 

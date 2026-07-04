@@ -115,7 +115,7 @@ private enum class DesktopSection {
 	ONDE_ESTAMOS,
 }
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
+private const val DEFAULT_BILLIONE_API_BASE_URL = "https://fowl-lasting-goldfish.ngrok-free.app"
 
 @Composable
 fun BillioneDesktopApp() {
@@ -166,6 +166,8 @@ Surface(modifier = Modifier.fillMaxSize()) {
                 DesktopAdminDashboardScreen(
                     authContext = authContext,
                     api = adminApi,
+                    apiBaseUrl = authBaseUrl,
+                    apiAccessToken = authClient.currentAccessToken(),
                     onOpenSite = { authContext = null },
                     onLogout = {
                         scope.launch {

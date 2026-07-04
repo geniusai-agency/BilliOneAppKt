@@ -43,6 +43,7 @@ class DesktopAuthClient(
 			url {
 				takeFrom(baseUrl)
 			}
+			header("ngrok-skip-browser-warning", "true")
 		}
 	}
 

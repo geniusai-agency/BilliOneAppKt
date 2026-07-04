@@ -21,6 +21,8 @@ private fun AdminDashboardPreview() {
             AdminDashboardScreen(
                 authContext = null,
                 api = api,
+                apiBaseUrl = "http://localhost",
+                apiAccessToken = null,
                 onOpenSite = {},
                 onLogout = {},
             )
