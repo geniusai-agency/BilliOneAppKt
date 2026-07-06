@@ -4,16 +4,50 @@ import androidx.compose.ui.graphics.Color
 import com.example.billionemotosappkt.shared.api.ClienteAprovacaoStatus
 import com.example.billionemotosappkt.shared.api.ClienteResponse
 
+data class ClienteFormState(
+    val nome: String = "",
+    val cpf: String = "",
+    val email: String = "",
+    val telefone: String = "",
+    val cnh: String = "",
+    val cnhCategoria: String = "",
+    val endereco: String = "",
+    val enderecoParente: String = "", // Adicionado para bater com o cURL e Dialog
+    val cidade: String = "",
+    val estado: String = "",
+    val cep: String = "",
+    val telefoneEmergencia1: String = "",
+    val telefoneEmergencia2: String = "",
+    val observacoes: String = "",
+    val cnhUrl: String? = null,
+    val status: ClienteAprovacaoStatus = ClienteAprovacaoStatus.PENDENTE,
+    val comprovanteResidenciaUrl: String? = null,
+    val comprovanteData: String = "", // Adicionado
+    val planoId: String? = null
+)
+
 data class ClienteListItem(
     val id: String,
-    val nome: String,
-    val cpf: String,
-    val telefone: String,
-    val email: String,
-    val cidade: String,
-    val estado: String,
-    val status: ClienteAprovacaoStatus,
-    val createdAt: String? = null,
+    val nome: String = "",
+    val cpf: String = "",
+    val email: String = "",
+    val cnh: String = "",
+    val cnhCategoria: String = "",
+    val endereco: String = "",
+    val enderecoParente: String = "", // Adicionado para bater com o cURL e Dialog
+    val cidade: String = "",
+    val estado: String = "",
+    val createdAt: String? = "",
+    val telefone: String = "",
+    val cep: String = "",
+    val telefoneEmergencia1: String = "",
+    val telefoneEmergencia2: String = "",
+    val observacoes: String = "",
+    val cnhUrl: String = "",
+    val status: ClienteAprovacaoStatus = ClienteAprovacaoStatus.PENDENTE,
+    val comprovanteResidenciaUrl: String = "",
+    val planoId: String = "",
+    val comprovanteData: String = ""
 ) {
     val initials: String = nome
         .split(" ")
@@ -22,7 +56,7 @@ data class ClienteListItem(
         .joinToString(separator = "")
         .uppercase()
         .ifBlank { "CL" }
-
+    
     val cityLabel: String = listOfNotNull(cidade.takeIf { it.isNotBlank() }, estado.takeIf { it.isNotBlank() })
         .joinToString(separator = "/")
         .ifBlank { "Sem cidade" }
@@ -58,16 +92,29 @@ data class ClientesSummary(
 )
 
 fun ClienteResponse.toListItem(): ClienteListItem {
+    val planoId = null
     return ClienteListItem(
         id = id,
         nome = nome,
-        cpf = cpf,
+        cpf = cpf ?: "",
         telefone = telefone.orEmpty().ifBlank { "(sem telefone)" },
         email = email.orEmpty().ifBlank { "(sem email)" },
+        cnh = cnh ?: "",
+        cnhCategoria = cnhCategoria ?: "",
+        endereco = endereco ?: "",
+        enderecoParente = enderecoParente ?: "", // Mapeado da response
         cidade = cidade.orEmpty().ifBlank { "Sem cidade" },
         estado = estado.orEmpty().ifBlank { "" },
+        cep = cep ?: "",
         status = statusAprovacao,
         createdAt = createdAt,
+        telefoneEmergencia1 = telefoneEmergencia1 ?: "",
+        telefoneEmergencia2 = telefoneEmergencia2 ?: "",
+        observacoes = observacoes ?: "",
+        cnhUrl = cnhUrl ?: "",
+        comprovanteResidenciaUrl = comprovanteResidenciaUrl ?: "",
+        planoId = planoId ?: "",
+        comprovanteData = comprovanteData ?: "" // Mapeado da response
     )
 }
 
@@ -86,4 +133,3 @@ fun ClienteAprovacaoStatus.accent(): Color = when (this) {
     ClienteAprovacaoStatus.APROVADO_COM_RESSALVA -> Color(0xFF8B5CF6)
     ClienteAprovacaoStatus.REPROVADO -> Color(0xFFFF4A4A)
 }
-

@@ -2,7 +2,6 @@ package com.example.billionemotosappkt.shared.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.FormBuilder
-import io.ktor.client.request.forms.append
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.request
@@ -16,6 +15,7 @@ import io.ktor.http.takeFrom
 import io.ktor.http.appendPathSegments
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Headers
 
 /**
  * High-level typed API surface for the backend documented in
@@ -298,7 +298,7 @@ class BillioneMotosApi(
                 appendText("codigoFipe", request.codigoFipe)
                 appendText("descricao", request.descricao)
                 imagemReferenciaImage?.let {
-                    appendFile("file", it)
+                    appendFile("file", it) // MUDAR DE "file" PARA "imagemReferencia"
                 }
             }
         
@@ -551,15 +551,14 @@ private fun FormBuilder.appendText(name: String, value: String?) {
 
 private fun FormBuilder.appendFile(name: String, file: UploadFileRequest) {
     append(
-        key = name,
-        filename = file.fileName,
-        contentType = ContentType.parse(file.contentType),
-        size = file.bytes.size.toLong(),
-    ) {
-        write(file.bytes)
-    }
+        name,
+        file.bytes,
+        Headers.build {
+            append(HttpHeaders.ContentType, file.contentType)
+            append(HttpHeaders.ContentDisposition, "filename=\"${file.fileName}\"")
+        },
+    )
 }
-
 private fun ListUsersQuery.toQueryMap(): Map<String, Any?> = mapOf(
     "q" to q,
     "kind" to kind,
