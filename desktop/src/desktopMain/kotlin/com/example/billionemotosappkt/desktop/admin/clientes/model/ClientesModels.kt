@@ -3,6 +3,8 @@ package com.example.billionemotosappkt.desktop.admin.clientes.model
 import androidx.compose.ui.graphics.Color
 import com.example.billionemotosappkt.shared.api.ClienteAprovacaoStatus
 import com.example.billionemotosappkt.shared.api.ClienteResponse
+import com.example.billionemotosappkt.shared.api.UpdateClienteRequest
+import kotlin.String
 
 data class ClienteFormState(
     val nome: String = "",
@@ -44,6 +46,7 @@ data class ClienteListItem(
     val telefoneEmergencia2: String = "",
     val observacoes: String = "",
     val cnhUrl: String = "",
+    val identidadeUrl: String = "",
     val status: ClienteAprovacaoStatus = ClienteAprovacaoStatus.PENDENTE,
     val comprovanteResidenciaUrl: String = "",
     val planoId: String = "",
@@ -60,6 +63,31 @@ data class ClienteListItem(
     val cityLabel: String = listOfNotNull(cidade.takeIf { it.isNotBlank() }, estado.takeIf { it.isNotBlank() })
         .joinToString(separator = "/")
         .ifBlank { "Sem cidade" }
+}
+
+fun ClienteListItem.toUpdateRequest(): UpdateClienteRequest {
+    return UpdateClienteRequest(
+        nome = nome.orEmpty(),
+        cpf = cpf.orEmpty(),
+        email = email.orEmpty(),
+        cnh = cnh.orEmpty(),
+        cnhCategoria = cnhCategoria.orEmpty(),
+        endereco = endereco.orEmpty(),
+        identidadeUrl = identidadeUrl,
+        enderecoParente = enderecoParente.orEmpty(),
+        cidade = cidade.orEmpty(),
+        estado = estado.orEmpty(),
+        telefone = telefone.orEmpty(),
+        cnhUrl = cnhUrl,
+        comprovanteResidenciaUrl = comprovanteResidenciaUrl,
+        cep = cep.orEmpty(),
+        telefoneEmergencia1 = telefoneEmergencia1.orEmpty(),
+        telefoneEmergencia2 = telefoneEmergencia2.orEmpty(),
+        observacoes = observacoes.orEmpty(),
+        planoId = planoId.orEmpty(),
+        status = status,
+        comprovanteData = comprovanteData
+    )
 }
 
 data class ClientesUiState(
@@ -112,6 +140,7 @@ fun ClienteResponse.toListItem(): ClienteListItem {
         telefoneEmergencia2 = telefoneEmergencia2 ?: "",
         observacoes = observacoes ?: "",
         cnhUrl = cnhUrl ?: "",
+        identidadeUrl = identidadeUrl ?: "",
         comprovanteResidenciaUrl = comprovanteResidenciaUrl ?: "",
         planoId = planoId ?: "",
         comprovanteData = comprovanteData ?: "" // Mapeado da response

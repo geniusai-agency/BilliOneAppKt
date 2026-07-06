@@ -376,6 +376,7 @@ data class UpdateClienteRequest(
     val cnh: String? = null,
     val cnhCategoria: String? = null,
     val cnhUrl: String? = null,
+    val identidadeUrl: String? = null,
     val comprovanteResidenciaUrl: String? = null,
     val comprovanteData: String? = null,
     val email: String? = null,
@@ -384,11 +385,14 @@ data class UpdateClienteRequest(
     val enderecoParente: String? = null,
     val cidade: String? = null,
     val estado: String? = null,
+    val planoId: String,
+    val status: ClienteAprovacaoStatus,
     val cep: String? = null,
     val telefoneEmergencia1: String? = null,
     val telefoneEmergencia2: String? = null,
     val observacoes: String? = null,
 )
+
 
 @Serializable
 data class DecisaoClienteRequest(
@@ -417,6 +421,7 @@ data class ClienteResponse(
     val cnh: String? = null,
     val cnhCategoria: String? = null,
     val cnhUrl: String? = null,
+    val identidadeUrl: String? = null,
     val comprovanteResidenciaUrl: String? = null,
     val comprovanteData: String? = null,
     val email: String? = null,

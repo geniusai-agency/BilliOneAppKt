@@ -1,6 +1,8 @@
 package com.example.billionemotosappkt.shared.api
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.readBytes
 import io.ktor.client.request.forms.FormBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -22,8 +24,8 @@ import io.ktor.http.Headers
  * `docs/api-contract-matrix.md`.
  */
 class BillioneMotosApi(
-    private val client: HttpClient,
-    private val config: ApiConfig,
+    val client: HttpClient,
+    val config: ApiConfig,
 ) {
     constructor(config: ApiConfig) : this(createBillioneMotosHttpClient(config), config)
 
@@ -43,7 +45,48 @@ class BillioneMotosApi(
         client.close()
     }
 
+    suspend fun fetchRawBytes(url: String): ByteArray {
+        val response: HttpResponse = client.get(url) {
+            config.defaultHeaders.forEach { (key, value) ->
+                header(key, value)
+            }
+            config.accessTokenProvider()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }
+        return response.readBytes()
+    }
+
+    private suspend fun attemptTokenRefresh(): Boolean {
+        val refreshToken = config.refreshTokenProvider() ?: return false
+        return try {
+            val response = auth.refresh(refreshToken)
+            config.onTokenRefreshed(response.accessToken, response.refreshToken)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private suspend inline fun <reified T> call(
+        method: HttpMethod,
+        path: String,
+        query: Map<String, Any?> = emptyMap(),
+        body: Any? = null,
+        authorized: Boolean = true,
+    ): T {
+        return try {
+            performCall<T>(method, path, query, body, authorized)
+        } catch (e: ApiException) {
+            if (authorized && e.statusCode == 401) {
+                if (attemptTokenRefresh()) {
+                    performCall<T>(method, path, query, body, authorized)
+                } else throw e
+            } else throw e
+        }
+    }
+
+    private suspend inline fun <reified T> performCall(
         method: HttpMethod,
         path: String,
         query: Map<String, Any?> = emptyMap(),
@@ -99,6 +142,72 @@ class BillioneMotosApi(
         }.getOrThrow()
     }
 
+    private suspend inline fun <reified T> multipartCall(
+        method: HttpMethod,
+        path: String,
+        authorized: Boolean = true,
+        build: FormBuilder.() -> Unit,
+    ): T {
+        return try {
+            performMultipartCall<T>(method, path, authorized, build)
+        } catch (e: ApiException) {
+            if (authorized && e.statusCode == 401) {
+                if (attemptTokenRefresh()) {
+                    performMultipartCall<T>(method, path, authorized, build)
+                } else throw e
+            } else throw e
+        }
+    }
+
+    private suspend inline fun <reified T> performMultipartCall(
+        method: HttpMethod,
+        path: String,
+        authorized: Boolean = true,
+        build: FormBuilder.() -> Unit,
+    ): T {
+        logRequest(method, path, emptyMap(), "[multipart]", authorized)
+
+        val response: HttpResponse = client.request {
+            this.method = method
+            url {
+                takeFrom(config.baseUrl)
+                val segments = path.trim('/').split('/').filter { it.isNotBlank() }
+                appendPathSegments(*segments.toTypedArray())
+            }
+            setBody(
+                MultiPartFormDataContent(
+                    parts = formData {
+                        build()
+                    },
+                ),
+            )
+            config.defaultHeaders.forEach { (key, value) ->
+                header(key, value)
+            }
+            if (authorized) {
+                config.accessTokenProvider()?.let { token ->
+                    header(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }
+
+        val rawBody = response.bodyAsText()
+        if (response.status.value !in 200..299) {
+            throw mapException(response.status.value, rawBody)
+        }
+
+        if (T::class == Unit::class) {
+            @Suppress("UNCHECKED_CAST")
+            return Unit as T
+        }
+
+        return runCatching {
+            decodeBody<T>(rawBody)
+        }.onFailure { error ->
+            logDecodeFailure(method, path, response.status.value, rawBody, error)
+        }.getOrThrow()
+    }
+
     private fun mapException(statusCode: Int, rawBody: String?): ApiException {
         val apiError = rawBody?.let { runCatching { BillioneMotosJson.decodeFromString(ApiErrorResponse.serializer(), it) }.getOrNull() }
         val message = when (val payload = apiError?.message) {
@@ -124,7 +233,7 @@ class BillioneMotosApi(
             call(HttpMethod.Get, "/auth/authentication")
 
         suspend fun refresh(refreshToken: String): AuthSessionResponse =
-            call(HttpMethod.Post, "/auth/refresh", body = RefreshTokenRequest(refreshToken), authorized = false)
+            performCall(HttpMethod.Post, "/auth/refresh", body = RefreshTokenRequest(refreshToken), authorized = false)
 
         suspend fun logout(): ApiMessageResponse =
             call(HttpMethod.Delete, "/auth/logout")
@@ -224,6 +333,37 @@ class BillioneMotosApi(
         suspend fun update(id: String, request: UpdateClienteRequest): ClienteResponse =
             call(HttpMethod.Patch, "/clientes/$id", body = request)
 
+        suspend fun updateMultipart(
+            id: String,
+            request: UpdateClienteRequest,
+            cnhImage: UploadFileRequest? = null,
+            identidadeImage: UploadFileRequest? = null,
+            comprovanteResidenciaImage: UploadFileRequest? = null,
+        ): ClienteResponse =
+            multipartCall(HttpMethod.Patch, "/clientes/$id/com-imagens") {
+                appendText("nome", request.nome)
+                appendText("cpf", request.cpf)
+                appendText("cnh", request.cnh)
+                appendText("cnhCategoria", request.cnhCategoria)
+                appendText("email", request.email)
+                appendText("telefone", request.telefone)
+                appendText("endereco", request.endereco)
+                appendText("enderecoParente", request.enderecoParente)
+                appendText("cidade", request.cidade)
+                appendText("estado", request.estado)
+                appendText("cep", request.cep)
+                appendText("telefoneEmergencia1", request.telefoneEmergencia1)
+                appendText("telefoneEmergencia2", request.telefoneEmergencia2)
+                appendText("observacoes", request.observacoes)
+                appendText("comprovanteData", request.comprovanteData)
+                appendText("planoId", request.planoId)
+                appendText("status", request.status.name)
+
+                cnhImage?.let { appendFile("cnhImage", it) }
+                identidadeImage?.let { appendFile("identidadeImage", it) }
+                comprovanteResidenciaImage?.let { appendFile("comprovanteResidenciaImage", it) }
+            }
+
         suspend fun decide(id: String, request: DecisaoClienteRequest): DecisaoAprovacaoClienteResponse =
             call(HttpMethod.Patch, "/clientes/$id/decisao", body = request)
     }
@@ -298,11 +438,9 @@ class BillioneMotosApi(
                 appendText("codigoFipe", request.codigoFipe)
                 appendText("descricao", request.descricao)
                 imagemReferenciaImage?.let {
-                    appendFile("file", it) // MUDAR DE "file" PARA "imagemReferencia"
+                    appendFile("file", it)
                 }
             }
-        
-        
 
         suspend fun deleteModelo(id: String): MotoModeloResponse =
             call(HttpMethod.Patch, "/modelos-moto/$id/desativar")
@@ -442,55 +580,6 @@ class BillioneMotosApi(
 
         suspend fun manutencoes(periodo: RelatorioPeriodoQuery = RelatorioPeriodoQuery()): List<RelatorioSecaoItemResponse> =
             call(HttpMethod.Get, "/relatorios/manutencoes", query = periodo.toQueryMap())
-    }
-
-    private suspend inline fun <reified T> multipartCall(
-        method: HttpMethod,
-        path: String,
-        authorized: Boolean = true,
-        build: FormBuilder.() -> Unit,
-    ): T {
-        logRequest(method, path, emptyMap(), "[multipart]", authorized)
-
-        val response: HttpResponse = client.request {
-            this.method = method
-            url {
-                takeFrom(config.baseUrl)
-                val segments = path.trim('/').split('/').filter { it.isNotBlank() }
-                appendPathSegments(*segments.toTypedArray())
-            }
-            setBody(
-                MultiPartFormDataContent(
-                    parts = formData {
-                        build()
-                    },
-                ),
-            )
-            config.defaultHeaders.forEach { (key, value) ->
-                header(key, value)
-            }
-            if (authorized) {
-                config.accessTokenProvider()?.let { token ->
-                    header(HttpHeaders.Authorization, "Bearer $token")
-                }
-            }
-        }
-
-        val rawBody = response.bodyAsText()
-        if (response.status.value !in 200..299) {
-            throw mapException(response.status.value, rawBody)
-        }
-
-        if (T::class == Unit::class) {
-            @Suppress("UNCHECKED_CAST")
-            return Unit as T
-        }
-
-        return runCatching {
-            decodeBody<T>(rawBody)
-        }.onFailure { error ->
-            logDecodeFailure(method, path, response.status.value, rawBody, error)
-        }.getOrThrow()
     }
 
     private inline fun <reified T> decodeBody(rawBody: String): T {

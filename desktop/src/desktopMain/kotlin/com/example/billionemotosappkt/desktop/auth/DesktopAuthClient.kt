@@ -115,7 +115,7 @@ class DesktopAuthClient(
 
 	fun currentRefreshToken(): String? = preferences.get(PREF_REFRESH, null)
 
-	private fun saveTokens(accessToken: String, refreshToken: String) {
+	fun saveTokens(accessToken: String, refreshToken: String) {
 		preferences.put(PREF_ACCESS, accessToken)
 		preferences.put(PREF_REFRESH, refreshToken)
 	}

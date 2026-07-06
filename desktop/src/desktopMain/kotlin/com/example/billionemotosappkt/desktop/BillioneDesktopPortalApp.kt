@@ -26,7 +26,7 @@ import com.example.billionemotosappkt.shared.api.ApiConfig
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://fowl-lasting-goldfish.ngrok-free.app"
+private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
 
 @Composable
 fun BillioneDesktopPortalApp() {
@@ -39,6 +39,11 @@ fun BillioneDesktopPortalApp() {
             ApiConfig(
                 baseUrl = authBaseUrl,
                 accessTokenProvider = { authClient.currentAccessToken() },
+                refreshTokenProvider = { authClient.currentRefreshToken() },
+                onTokenRefreshed = { access, refresh ->
+                    // Salva os novos tokens para as próximas requisições
+                    authClient.saveTokens(access, refresh)
+                }
             ),
         )
     }
