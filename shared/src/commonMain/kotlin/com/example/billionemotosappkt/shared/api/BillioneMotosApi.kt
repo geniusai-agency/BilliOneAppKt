@@ -324,6 +324,9 @@ class BillioneMotosApi(
         suspend fun list(query: ListClientesQuery = ListClientesQuery()): PagedResponse<ClienteResponse> =
             call(HttpMethod.Get, "/clientes", query = query.toQueryMap())
 
+        suspend fun listAnalises(query: ListAnalisesQuery = ListAnalisesQuery()): PagedResponse<ClienteAnalisePedidoResponse> =
+            call(HttpMethod.Get, "/clientes/analises", query = query.toQueryMap())
+
         suspend fun get(id: String): ClienteResponse =
             call(HttpMethod.Get, "/clientes/$id")
 
@@ -357,7 +360,6 @@ class BillioneMotosApi(
                 appendText("observacoes", request.observacoes)
                 appendText("comprovanteData", request.comprovanteData)
                 appendText("planoId", request.planoId)
-                appendText("status", request.status.name)
 
                 cnhImage?.let { appendFile("cnhImage", it) }
                 identidadeImage?.let { appendFile("identidadeImage", it) }
@@ -667,10 +669,25 @@ private fun ListClientesQuery.toQueryMap(): Map<String, Any?> = mapOf(
     "cidade" to cidade,
     "estado" to estado,
     "hasUser" to hasUser,
+    "planoId" to planoId,
     "page" to page,
     "limit" to limit,
     "createdFrom" to createdFrom,
     "createdTo" to createdTo,
+)
+
+private fun ListAnalisesQuery.toQueryMap(): Map<String, Any?> = mapOf(
+    "q" to q,
+    "statusAprovacao" to statusAprovacao,
+    "cidade" to cidade,
+    "estado" to estado,
+    "hasUser" to hasUser,
+    "page" to page,
+    "limit" to limit,
+    "createdFrom" to createdFrom,
+    "createdTo" to createdTo,
+    "sortBy" to sortBy,
+    "sortOrder" to sortOrder,
 )
 
 private fun ListPlanosQuery.toQueryMap(): Map<String, Any?> = mapOf(

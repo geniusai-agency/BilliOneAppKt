@@ -2,7 +2,9 @@ package com.example.billionemotosappkt.desktop.admin.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -49,84 +51,91 @@ fun DashboardSection(
     snapshot: AdminDashboardSnapshot,
     compact: Boolean,
 ) {
-    ManagementHeader()
-    SpacerV(18)
-    MetricsGrid(snapshot = snapshot, compact = compact)
-    SpacerV(18)
-    DueContractsPanel(snapshot = snapshot)
-    SpacerV(18)
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val gap = 18.dp
-        val panelWidth = (maxWidth - gap) / 2
-        if (!compact && panelWidth >= 360.dp) {
-            Row(horizontalArrangement = Arrangement.spacedBy(gap), modifier = Modifier.fillMaxWidth()) {
-                RecentPanel(
-                    title = "OSs Recentes",
-                    subtitle = "Últimas ordens de serviço registradas",
-                    items = snapshot.recentWorkOrders,
-                    modifier = Modifier.width(panelWidth),
-                )
-                FinancePanel(
-                    title = "Resumo Financeiro",
-                    subtitle = "Faturamento dos últimos 6 meses",
-                    points = snapshot.financeMonths,
-                    modifier = Modifier.width(panelWidth),
-                )
-            }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-                RecentPanel(
-                    title = "OSs Recentes",
-                    subtitle = "Últimas ordens de serviço registradas",
-                    items = snapshot.recentWorkOrders,
-                )
-                FinancePanel(
-                    title = "Resumo Financeiro",
-                    subtitle = "Faturamento dos últimos 6 meses",
-                    points = snapshot.financeMonths,
-                )
-            }
-        }
-    }
-    SpacerV(18)
-    if (compact) {
-        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            InsightCard(
-                title = "Clientes",
-                description = "Fluxo de aprovação, documentos e status por cidade.",
-            )
-            InsightCard(
-                title = "Operação",
-                description = "Motos, manutenção e contratos concentrados em uma visão só.",
-            )
-        }
-    } else {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        ManagementHeader()
+        MetricsGrid(snapshot = snapshot, compact = compact)
+        DueContractsPanel(snapshot = snapshot)
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val gap = 18.dp
-            val cardWidth = (maxWidth - gap) / 2
-            if (cardWidth >= 320.dp) {
-                Row(horizontalArrangement = Arrangement.spacedBy(gap), modifier = Modifier.fillMaxWidth()) {
-                    InsightCard(
-                        title = "Clientes",
-                        description = "Fluxo de aprovação, documentos e status por cidade.",
-                        modifier = Modifier.width(cardWidth),
+            val panelWidth = (maxWidth - gap) / 2
+            if (!compact && panelWidth >= 360.dp) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(gap),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    RecentPanel(
+                        title = "OSs Recentes",
+                        subtitle = "Últimas ordens de serviço registradas",
+                        items = snapshot.recentWorkOrders,
+                        modifier = Modifier.width(panelWidth),
                     )
-                    InsightCard(
-                        title = "Operação",
-                        description = "Motos, manutenção e contratos concentrados em uma visão só.",
-                        modifier = Modifier.width(cardWidth),
+                    FinancePanel(
+                        title = "Resumo Financeiro",
+                        subtitle = "Faturamento dos últimos 6 meses",
+                        points = snapshot.financeMonths,
+                        modifier = Modifier.width(panelWidth),
                     )
                 }
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                    InsightCard(
-                        title = "Clientes",
-                        description = "Fluxo de aprovação, documentos e status por cidade.",
+                Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                    RecentPanel(
+                        title = "OSs Recentes",
+                        subtitle = "Últimas ordens de serviço registradas",
+                        items = snapshot.recentWorkOrders,
                     )
-                    InsightCard(
-                        title = "Operação",
-                        description = "Motos, manutenção e contratos concentrados em uma visão só.",
+                    FinancePanel(
+                        title = "Resumo Financeiro",
+                        subtitle = "Faturamento dos últimos 6 meses",
+                        points = snapshot.financeMonths,
                     )
+                }
+            }
+        }
+        if (compact) {
+            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                InsightCard(
+                    title = "Clientes",
+                    description = "Fluxo de aprovação, documentos e status por cidade.",
+                )
+                InsightCard(
+                    title = "Operação",
+                    description = "Motos, manutenção e contratos concentrados em uma visão só.",
+                )
+            }
+        } else {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val gap = 18.dp
+                val cardWidth = (maxWidth - gap) / 2
+                if (cardWidth >= 320.dp) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(gap),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        InsightCard(
+                            title = "Clientes",
+                            description = "Fluxo de aprovação, documentos e status por cidade.",
+                            modifier = Modifier.width(cardWidth),
+                        )
+                        InsightCard(
+                            title = "Operação",
+                            description = "Motos, manutenção e contratos concentrados em uma visão só.",
+                            modifier = Modifier.width(cardWidth),
+                        )
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                        InsightCard(
+                            title = "Clientes",
+                            description = "Fluxo de aprovação, documentos e status por cidade.",
+                        )
+                        InsightCard(
+                            title = "Operação",
+                            description = "Motos, manutenção e contratos concentrados em uma visão só.",
+                        )
+                    }
                 }
             }
         }
@@ -139,10 +148,30 @@ fun MetricsGrid(
     compact: Boolean,
 ) {
     val metrics = listOf(
-        AdminMetric("Contratos ativos", snapshot.activeContracts.toString(), Icons.Default.FileCopy, Color(0xFF20E65B)),
-        AdminMetric("Vencendo em 60 dias", snapshot.dueIn60Days.toString(), Icons.Default.NotificationsNone, Color(0xFFFFB300)),
-        AdminMetric("Faturamento do mês", snapshot.monthlyBilling, Icons.Default.AttachMoney, Color(0xFF20E65B)),
-        AdminMetric("Recebido no mês", snapshot.monthlyReceived, Icons.Default.Dashboard, Color(0xFF20E65B)),
+        AdminMetric(
+            "Contratos ativos",
+            snapshot.activeContracts.toString(),
+            Icons.Default.FileCopy,
+            Color(0xFF20E65B)
+        ),
+        AdminMetric(
+            "Vencendo em 60 dias",
+            snapshot.dueIn60Days.toString(),
+            Icons.Default.NotificationsNone,
+            Color(0xFFFFB300)
+        ),
+        AdminMetric(
+            "Faturamento do mês",
+            snapshot.monthlyBilling,
+            Icons.Default.AttachMoney,
+            Color(0xFF20E65B)
+        ),
+        AdminMetric(
+            "Recebido no mês",
+            snapshot.monthlyReceived,
+            Icons.Default.Dashboard,
+            Color(0xFF20E65B)
+        ),
         AdminMetric("Em aberto", snapshot.openItems, Icons.Default.Analytics, Color(0xFFFF4A4A)),
     )
 
@@ -168,7 +197,10 @@ fun MetricsGrid(
                 }
             }
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(gap), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 metrics.forEach { metric ->
                     DashboardMetricCard(metric = metric, modifier = Modifier.width(itemWidth))
                 }
@@ -445,7 +477,10 @@ fun SectionPlaceholder(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF0D1210)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.06f)
+            ),
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -467,7 +502,11 @@ fun SectionPlaceholder(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(999.dp))
                                 .background(Color(0xFF101814))
-                                .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(999.dp))
+                                .border(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.06f),
+                                    RoundedCornerShape(999.dp)
+                                )
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             Text(
@@ -487,14 +526,20 @@ fun SectionPlaceholder(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111614)),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.04f)
+                                ),
                             ) {
                                 Text(
                                     text = stat,
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 12.dp
+                                    ),
                                 )
                             }
                         }
@@ -540,7 +585,10 @@ fun SectionShell(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF0D1210)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.06f)
+            ),
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -562,7 +610,11 @@ fun SectionShell(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(999.dp))
                                 .background(Color(0xFF101814))
-                                .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(999.dp))
+                                .border(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.06f),
+                                    RoundedCornerShape(999.dp)
+                                )
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             Text(
@@ -582,14 +634,20 @@ fun SectionShell(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111614)),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.04f)
+                                ),
                             ) {
                                 Text(
                                     text = stat,
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 12.dp
+                                    ),
                                 )
                             }
                         }
@@ -634,7 +692,12 @@ fun AdminSectionCard(
                     .background(accent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
@@ -673,7 +736,10 @@ fun DetailGrid(items: List<String>) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF111614)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.04f)
+                ),
             ) {
                 Text(
                     text = item,

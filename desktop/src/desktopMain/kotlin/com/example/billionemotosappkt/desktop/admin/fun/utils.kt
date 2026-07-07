@@ -5,8 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.res.loadImageBitmap
-import com.example.billionemotosappkt.desktop.admin.screens.fallbackMotoPainter
-import com.example.billionemotosappkt.desktop.admin.screens.getMotoModelCardImage
 import com.example.billionemotosappkt.desktop.api.ContratoResponse
 import com.example.billionemotosappkt.desktop.api.ContratoStatus
 import com.example.billionemotosappkt.desktop.api.ManutencaoResponse
@@ -75,6 +73,23 @@ fun MotoModeloResponse.toPanelImage(): String = getMotoModelCardImage(marca, mod
 
 fun getMotoImage(modelo: String?): String {
 	return getMotoModelCardImage(null, modelo)
+}
+
+fun getMotoModelCardImage(marca: String?, modelo: String?): String {
+	val combined = listOfNotNull(marca, modelo).joinToString(" ")
+	return when {
+		combined.contains("Avelloz", ignoreCase = true) -> "avelloz_160_black_new.png"
+		combined.contains("Ninja", ignoreCase = true) -> "moto_sport_updated.png"
+		combined.contains("Eletrica", ignoreCase = true) -> "moto_eletrica_new.png"
+		combined.contains("CG", ignoreCase = true) -> "moto_premium.png"
+		else -> "moto_premium.png"
+	}
+}
+
+fun fallbackMotoPainter(): BitmapPainter {
+	val fallback = Thread.currentThread().contextClassLoader.getResourceAsStream("moto_premium.png")
+	return fallback?.use { BitmapPainter(loadImageBitmap(it)) }
+		?: error("Fallback image resource `moto_premium.png` not found.")
 }
 
 fun resolveMotoImagePreview(imageValue: String?, apiBaseUrl: String? = null): String {

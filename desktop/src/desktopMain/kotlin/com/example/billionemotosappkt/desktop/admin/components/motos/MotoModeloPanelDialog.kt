@@ -21,8 +21,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.billionemotosappkt.desktop.admin.data.MotoModeloFormState
 import com.example.billionemotosappkt.desktop.admin.data.toFormState
 import com.example.billionemotosappkt.desktop.admin.`fun`.getMotoHeroImage
+import com.example.billionemotosappkt.desktop.admin.`fun`.getMotoModelCardImage
 import com.example.billionemotosappkt.desktop.admin.`fun`.resolveImageSource
-import com.example.billionemotosappkt.desktop.admin.screens.getMotoModelCardImage
 import com.example.billionemotosappkt.shared.api.MotoModeloResponse
 
 @Composable

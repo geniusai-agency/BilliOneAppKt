@@ -17,6 +17,9 @@ enum class UserStatus { ACTIVE, INVITED, PENDING_PASSWORD, SUSPENDED, ARCHIVED }
 enum class ClienteAprovacaoStatus { PENDENTE, EM_ANALISE, APROVADO, APROVADO_COM_RESSALVA, REPROVADO }
 
 @Serializable
+enum class ClienteAnalisePedidoStatus { PENDENTE, EM_ANALISE, APROVADO, REPROVADO, CANCELADO }
+
+@Serializable
 enum class ContratoPeriodicidade { DIARIA, SEMANAL, QUINZENAL, MENSAL }
 
 @Serializable
@@ -193,6 +196,7 @@ data class UserResponse(
     val email: String,
     val passwordHash: String? = null,
     val nome: String,
+    val cpf: String? = null,
     val telefone: String? = null,
     val avatarUrl: String? = null,
     val kind: UserKind,
@@ -386,7 +390,7 @@ data class UpdateClienteRequest(
     val cidade: String? = null,
     val estado: String? = null,
     val planoId: String,
-    val status: ClienteAprovacaoStatus,
+    // val status: ClienteAprovacaoStatus,
     val cep: String? = null,
     val telefoneEmergencia1: String? = null,
     val telefoneEmergencia2: String? = null,
@@ -398,6 +402,7 @@ data class UpdateClienteRequest(
 data class DecisaoClienteRequest(
     val decisao: ClienteAprovacaoStatus,
     val justificativa: String,
+    val motoId: String? = null,
 )
 
 @Serializable
@@ -407,6 +412,7 @@ data class ListClientesQuery(
     val cidade: String? = null,
     val estado: String? = null,
     val hasUser: Boolean? = null,
+    val planoId: String? = null,
     val page: Int? = null,
     val limit: Int? = null,
     val createdFrom: String? = null,
@@ -414,10 +420,25 @@ data class ListClientesQuery(
 )
 
 @Serializable
+data class ListAnalisesQuery(
+    val q: String? = null,
+    val statusAprovacao: ClienteAprovacaoStatus? = null,
+    val cidade: String? = null,
+    val estado: String? = null,
+    val hasUser: Boolean? = null,
+    val page: Int? = null,
+    val limit: Int? = null,
+    val createdFrom: String? = null,
+    val createdTo: String? = null,
+    val sortBy: String? = null,
+    val sortOrder: String? = null,
+)
+
+@Serializable
 data class ClienteResponse(
     val id: String,
-    val nome: String,
-    val cpf: String,
+    val nome: String? = null,
+    val cpf: String? = null,
     val cnh: String? = null,
     val cnhCategoria: String? = null,
     val cnhUrl: String? = null,
@@ -426,6 +447,7 @@ data class ClienteResponse(
     val comprovanteData: String? = null,
     val email: String? = null,
     val telefone: String? = null,
+    val planoId: String? = null,
     val endereco: String? = null,
     val enderecoParente: String? = null,
     val cidade: String? = null,
@@ -434,9 +456,29 @@ data class ClienteResponse(
     val telefoneEmergencia1: String? = null,
     val telefoneEmergencia2: String? = null,
     val statusAprovacao: ClienteAprovacaoStatus,
+    val usuario: UserResponse? = null,
+    val plano: PlanoResponse? = null,
+    val contrato: ContratoResponse? = null,
+    val contratos: List<ContratoResponse> = emptyList(),
     val observacoes: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+)
+
+@Serializable
+data class ClienteAnalisePedidoResponse(
+    val id: String,
+    val userId: String? = null,
+    val status: ClienteAnalisePedidoStatus,
+    val payload: JsonElement? = null,
+    val cooldownUntil: String? = null,
+    val decisaoJustificativa: String? = null,
+    val decididoPor: String? = null,
+    val decididoEm: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val usuario: UserResponse? = null,
+    val plano: PlanoResponse? = null,
 )
 
 @Serializable

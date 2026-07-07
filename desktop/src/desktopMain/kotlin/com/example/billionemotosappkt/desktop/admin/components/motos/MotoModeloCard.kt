@@ -1,5 +1,6 @@
 package com.example.billionemotosappkt.desktop.admin.components.motos
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,8 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -21,6 +24,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,8 +41,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.billionemotosappkt.desktop.admin.`fun`.desktopImagePainter
+import com.example.billionemotosappkt.desktop.admin.`fun`.getMotoModelCardImage
 import com.example.billionemotosappkt.desktop.admin.`fun`.resolveImageSource
-import com.example.billionemotosappkt.desktop.admin.screens.getMotoModelCardImage
 import com.example.billionemotosappkt.shared.api.MotoModeloResponse
 
 @Composable
@@ -57,177 +61,153 @@ fun MotoModeloCard(
 			getMotoModelCardImage(model.marca, model.modelo)
 		}
 	}
+
 	Card(
 		modifier = modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(20.dp),
-		colors = CardDefaults.cardColors(containerColor = Color(0xFF0D1210)),
-		border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+		shape = RoundedCornerShape(24.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0C120E)),
+		border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
 	) {
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(16.dp),
-			horizontalArrangement = Arrangement.spacedBy(16.dp),
+				.padding(20.dp),
+			horizontalArrangement = Arrangement.spacedBy(20.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			Box(
 				modifier = Modifier
-					.size(168.dp, 118.dp)
-					.clip(RoundedCornerShape(22.dp))
+					.size(180.dp, 130.dp)
+					.clip(RoundedCornerShape(18.dp))
 					.background(
-						Brush.linearGradient(
+						Brush.verticalGradient(
 							listOf(
-								Color(0xFF101915),
+								Color(0xFF141D19),
 								Color(0xFF080D0A),
 							),
 						),
 					)
-					.border(1.dp, Color.White.copy(alpha = 0.04f), RoundedCornerShape(22.dp)),
+					.border(1.dp, Color.White.copy(alpha = 0.04f), RoundedCornerShape(18.dp)),
 				contentAlignment = Alignment.Center,
 			) {
 				Image(
 					painter = desktopImagePainter(imageResource, apiBaseUrl, apiAccessToken),
 					contentDescription = null,
-					modifier = Modifier.fillMaxSize(),
+					modifier = Modifier.fillMaxSize().padding(12.dp),
 				)
 			}
-			
+
 			Column(
 				modifier = Modifier.weight(1f),
-				verticalArrangement = Arrangement.spacedBy(10.dp)
+				verticalArrangement = Arrangement.spacedBy(12.dp),
 			) {
 				Row(
 					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					horizontalArrangement = Arrangement.SpaceBetween,
 					verticalAlignment = Alignment.Top,
 				) {
-					Column(
-						modifier = Modifier.weight(1f),
-						verticalArrangement = Arrangement.spacedBy(4.dp)
-					) {
+					Column(modifier = Modifier.weight(1f)) {
 						Text(
-							text = listOfNotNull(model.marca, model.nome).joinToString(" ")
-								.ifBlank { "Modelo sem nome" },
+							text = listOfNotNull(
+								model.marca?.takeIf { it.isNotBlank() },
+								model.nome?.takeIf { it.isNotBlank() },
+								model.modelo?.takeIf { it.isNotBlank() },
+							).joinToString(" ").ifBlank { "Modelo sem nome" },
 							color = Color.White,
 							fontWeight = FontWeight.Bold,
-							fontSize = 19.sp,
+							fontSize = 20.sp,
 							maxLines = 1,
 							overflow = TextOverflow.Ellipsis,
 						)
+						Spacer(Modifier.height(4.dp))
 						Text(
 							text = model.descricao?.takeIf { it.isNotBlank() }
-								?: "Ficha técnica e ações de catálogo.",
-							color = Color.White.copy(alpha = 0.56f),
+								?: "Ficha tecnica e acoes de catalogo.",
+							color = Color.White.copy(alpha = 0.5f),
+							fontSize = 13.sp,
 							maxLines = 2,
+							lineHeight = 18.sp,
 							overflow = TextOverflow.Ellipsis,
 						)
 					}
-				}
-				
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
-					verticalAlignment = Alignment.CenterVertically
-				) {
-					MotoModeloSmallTag(
-						text = model.categoria ?: "Categoria não definida",
-						tint = Color(0xFF7DD3FC)
-					)
-					MotoModeloSmallTag(
-						text = model.tipo ?: "Tipo não definido",
-						tint = Color(0xFFFFB300)
-					)
-					MotoModeloSmallTag(
-						text = model.combustivel ?: "Combustível não definido",
-						tint = Color(0xFF20E65B)
-					)
-				}
-				
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
-					verticalAlignment = Alignment.CenterVertically
-				) {
-					MotoModeloSmallTag(text = model.cilindrada?.let { "${it}cc" } ?: "cc",
-						tint = Color(0xFF20E65B))
-					MotoModeloSmallTag(
-						text = model.ano?.toString() ?: "ano",
-						tint = Color(0xFF7DD3FC)
-					)
-					if (!model.id.isNullOrBlank()) {
-						MotoModeloSmallTag(
-							text = model.id.orEmpty().take(6),
-							tint = Color.White.copy(alpha = 0.68f)
-						)
+
+					Box {
+						IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(32.dp)) {
+							Icon(Icons.Default.MoreVert, null, tint = Color.White.copy(0.4f))
+						}
+						DropdownMenu(
+							expanded = menuOpen,
+							onDismissRequest = { menuOpen = false },
+							modifier = Modifier.background(Color(0xFF0E1411)),
+						) {
+							DropdownMenuItem(text = { Text("Ver detalhes") }, onClick = { menuOpen = false; onView() })
+							DropdownMenuItem(text = { Text("Editar") }, onClick = { menuOpen = false; onEdit() })
+							DropdownMenuItem(text = { Text("Desativar", color = Color(0xFFFF4A4A)) }, onClick = { menuOpen = false; onDelete() })
+						}
 					}
+				}
+
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					MotoModeloSmallTag(text = model.categoria ?: "Trail", tint = Color(0xFF7DD3FC))
+					MotoModeloSmallTag(text = model.tipo ?: "Urbana", tint = Color(0xFFFFB300))
+					MotoModeloSmallTag(text = model.combustivel ?: "Gasolina", tint = Color(0xFF20E65B))
+				}
+
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					TechnicalTag(text = model.cilindrada?.let { "${it}cc" } ?: "160cc")
+					TechnicalTag(text = model.ano?.toString() ?: "2026")
+					TechnicalTag(text = model.id?.take(6) ?: "BLN-E")
 				}
 			}
-			
+
 			Column(
 				horizontalAlignment = Alignment.End,
-				verticalArrangement = Arrangement.spacedBy(10.dp),
-				modifier = Modifier
-					.widthIn(min = 110.dp, max = 160.dp)
-					.align(Alignment.Top),
+				verticalArrangement = Arrangement.Center,
+				modifier = Modifier.widthIn(min = 120.dp),
 			) {
-				Box(contentAlignment = Alignment.TopEnd) {
-					IconButton(onClick = { menuOpen = true }) {
-						Icon(
-							imageVector = Icons.Default.MoreVert,
-							contentDescription = "Abrir ações",
-							tint = Color.White.copy(alpha = 0.8f),
-						)
-					}
-					DropdownMenu(
-						expanded = menuOpen,
-						onDismissRequest = { menuOpen = false },
-						modifier = Modifier.background(Color(0xFF0E1411)),
-					) {
-						DropdownMenuItem(
-							text = { Text("Ver detalhes") },
-							onClick = {
-								menuOpen = false
-								onView()
-							},
-						)
-						DropdownMenuItem(
-							text = { Text("Editar") },
-							onClick = {
-								menuOpen = false
-								onEdit()
-							},
-						)
-						DropdownMenuItem(
-							text = { Text("Desativar", color = Color(0xFFFF4A4A)) },
-							onClick = {
-								menuOpen = false
-								onDelete()
-							},
-						)
-					}
-				}
 				Text(
-					text = model.marca?.uppercase()?.take(12) ?: "CATÁLOGO",
+					text = model.marca?.uppercase() ?: "AVELOZ",
 					color = Color(0xFF20E65B),
 					fontSize = 11.sp,
 					fontWeight = FontWeight.Bold,
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis,
+					letterSpacing = 1.sp,
 				)
+				Spacer(Modifier.height(4.dp))
 				Text(
-					text = "R$ ${model.precoInicial ?: "n/a"}",
+					text = "R$ ${model.precoInicial ?: "0.000,00"}",
 					color = Color.White,
-					fontSize = 16.sp,
+					fontSize = 18.sp,
 					fontWeight = FontWeight.Black,
-					maxLines = 1,
-					overflow = TextOverflow.Ellipsis,
 				)
 				Text(
-					text = "Ações no menu",
-					color = Color.White.copy(alpha = 0.42f),
-					fontSize = 11.sp,
+					text = "Acoes no menu",
+					color = Color.White.copy(alpha = 0.3f),
+					fontSize = 10.sp,
 				)
 			}
 		}
 	}
 }
 
-
+@Composable
+private fun TechnicalTag(text: String) {
+	Surface(
+		color = Color(0xFF20E65B).copy(alpha = 0.08f),
+		shape = RoundedCornerShape(6.dp),
+		border = BorderStroke(1.dp, Color(0xFF20E65B).copy(alpha = 0.15f)),
+	) {
+		Text(
+			text = text,
+			color = Color(0xFF20E65B).copy(alpha = 0.8f),
+			fontSize = 11.sp,
+			fontWeight = FontWeight.Medium,
+			modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+		)
+	}
+}

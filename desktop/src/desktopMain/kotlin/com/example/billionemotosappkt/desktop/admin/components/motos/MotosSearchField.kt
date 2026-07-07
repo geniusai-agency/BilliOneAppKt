@@ -1,6 +1,7 @@
 package com.example.billionemotosappkt.desktop.admin.components.motos
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,7 @@ fun MotosSearchField(value: String, onValueChange: (String) -> Unit) {
 	OutlinedTextField(
 		value = value,
 		onValueChange = onValueChange,
-		modifier = Modifier.width(320.dp),
+		modifier = Modifier.width(320.dp).height(56.dp),
 		placeholder = { Text("Buscar placa, modelo...") },
 		leadingIcon = {
 			Icon(

@@ -1,10 +1,16 @@
 package com.example.billionemotosappkt.desktop.admin.clientes.model
 
 import androidx.compose.ui.graphics.Color
+import com.example.billionemotosappkt.shared.api.ClienteAnalisePedidoResponse
+import com.example.billionemotosappkt.shared.api.ClienteAnalisePedidoStatus
 import com.example.billionemotosappkt.shared.api.ClienteAprovacaoStatus
 import com.example.billionemotosappkt.shared.api.ClienteResponse
 import com.example.billionemotosappkt.shared.api.UpdateClienteRequest
 import kotlin.String
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 data class ClienteFormState(
     val nome: String = "",
@@ -50,6 +56,11 @@ data class ClienteListItem(
     val status: ClienteAprovacaoStatus = ClienteAprovacaoStatus.PENDENTE,
     val comprovanteResidenciaUrl: String = "",
     val planoId: String = "",
+    val planoNome: String = "",
+    val contratoId: String = "",
+    val contratoStatus: String = "",
+    val motoNome: String = "",
+    val motoPlaca: String = "",
     val comprovanteData: String = ""
 ) {
     val initials: String = nome
@@ -60,6 +71,41 @@ data class ClienteListItem(
         .uppercase()
         .ifBlank { "CL" }
     
+    val cityLabel: String = listOfNotNull(cidade.takeIf { it.isNotBlank() }, estado.takeIf { it.isNotBlank() })
+        .joinToString(separator = "/")
+        .ifBlank { "Sem cidade" }
+}
+
+data class AnaliseListItem(
+    val id: String,
+    val userId: String,
+    val nome: String = "",
+    val cpf: String = "",
+    val email: String = "",
+    val telefone: String = "",
+    val endereco: String = "",
+    val enderecoParente: String = "",
+    val cidade: String = "",
+    val estado: String = "",
+    val cep: String = "",
+    val observacoes: String = "",
+    val cnh: String = "",
+    val cnhCategoria: String = "",
+    val planoId: String = "",
+    val planoNome: String = "",
+    val motoId: String = "",
+    val motoNome: String = "",
+    val cnhUrl: String = "",
+    val identidadeUrl: String = "",
+    val comprovanteResidenciaUrl: String = "",
+    val cooldownUntil: String = "",
+    val decisaoJustificativa: String = "",
+    val decididoPor: String = "",
+    val decididoEm: String = "",
+    val updatedAt: String = "",
+    val status: ClienteAnalisePedidoStatus = ClienteAnalisePedidoStatus.PENDENTE,
+    val createdAt: String? = "",
+) {
     val cityLabel: String = listOfNotNull(cidade.takeIf { it.isNotBlank() }, estado.takeIf { it.isNotBlank() })
         .joinToString(separator = "/")
         .ifBlank { "Sem cidade" }
@@ -85,7 +131,6 @@ fun ClienteListItem.toUpdateRequest(): UpdateClienteRequest {
         telefoneEmergencia2 = telefoneEmergencia2.orEmpty(),
         observacoes = observacoes.orEmpty(),
         planoId = planoId.orEmpty(),
-        status = status,
         comprovanteData = comprovanteData
     )
 }
@@ -120,13 +165,18 @@ data class ClientesSummary(
 )
 
 fun ClienteResponse.toListItem(): ClienteListItem {
-    val planoId = null
+    val usuario = usuario
+    val nomeCliente = nome ?: usuario?.nome.orEmpty()
+    val cpfCliente = cpf ?: usuario?.cpf.orEmpty()
+    val emailCliente = email ?: usuario?.email.orEmpty()
+    val telefoneCliente = telefone ?: usuario?.telefone.orEmpty()
+
     return ClienteListItem(
         id = id,
-        nome = nome,
-        cpf = cpf ?: "",
-        telefone = telefone.orEmpty().ifBlank { "(sem telefone)" },
-        email = email.orEmpty().ifBlank { "(sem email)" },
+        nome = nomeCliente,
+        cpf = cpfCliente,
+        telefone = telefoneCliente.orEmpty().ifBlank { "(sem telefone)" },
+        email = emailCliente.orEmpty().ifBlank { "(sem email)" },
         cnh = cnh ?: "",
         cnhCategoria = cnhCategoria ?: "",
         endereco = endereco ?: "",
@@ -143,7 +193,56 @@ fun ClienteResponse.toListItem(): ClienteListItem {
         identidadeUrl = identidadeUrl ?: "",
         comprovanteResidenciaUrl = comprovanteResidenciaUrl ?: "",
         planoId = planoId ?: "",
+        planoNome = "",
+        contratoId = "",
+        contratoStatus = "",
+        motoNome = "",
+        motoPlaca = "",
         comprovanteData = comprovanteData ?: "" // Mapeado da response
+    )
+}
+
+private fun JsonElement?.asString(key: String): String {
+    val jsonObject = this as? JsonObject ?: return ""
+    return jsonObject[key]
+        ?.jsonPrimitive
+        ?.contentOrNull
+        ?.trim()
+        .orEmpty()
+}
+
+fun ClienteAnalisePedidoResponse.toListItem(): AnaliseListItem {
+    val usuarioLocal = usuario
+    val payloadLocal = payload
+    return AnaliseListItem(
+        id = id,
+        userId = userId ?: usuarioLocal?.id.orEmpty(),
+        nome = usuarioLocal?.nome.orEmpty(),
+        cpf = usuarioLocal?.cpf.orEmpty(),
+        email = usuarioLocal?.email.orEmpty(),
+        telefone = usuarioLocal?.telefone.orEmpty(),
+        endereco = payloadLocal.asString("endereco"),
+        enderecoParente = payloadLocal.asString("enderecoParente"),
+        cidade = payloadLocal.asString("cidade"),
+        estado = payloadLocal.asString("estado"),
+        cep = payloadLocal.asString("cep"),
+        observacoes = payloadLocal.asString("observacoes"),
+        cnh = payloadLocal.asString("cnh"),
+        cnhCategoria = payloadLocal.asString("cnhCategoria"),
+        planoId = payloadLocal.asString("planoId"),
+        planoNome = plano?.nome.orEmpty(),
+        motoId = payloadLocal.asString("motoId"),
+        motoNome = payloadLocal.asString("modelo"),
+        cnhUrl = payloadLocal.asString("cnhUrl"),
+        identidadeUrl = payloadLocal.asString("identidadeUrl"),
+        comprovanteResidenciaUrl = payloadLocal.asString("comprovanteResidenciaUrl"),
+        cooldownUntil = cooldownUntil ?: "",
+        decisaoJustificativa = decisaoJustificativa ?: "",
+        decididoPor = decididoPor ?: "",
+        decididoEm = decididoEm ?: "",
+        updatedAt = updatedAt ?: "",
+        status = status,
+        createdAt = createdAt,
     )
 }
 
@@ -161,4 +260,20 @@ fun ClienteAprovacaoStatus.accent(): Color = when (this) {
     ClienteAprovacaoStatus.APROVADO -> Color(0xFF20E65B)
     ClienteAprovacaoStatus.APROVADO_COM_RESSALVA -> Color(0xFF8B5CF6)
     ClienteAprovacaoStatus.REPROVADO -> Color(0xFFFF4A4A)
+}
+
+fun ClienteAnalisePedidoStatus.label(): String = when (this) {
+    ClienteAnalisePedidoStatus.PENDENTE -> "Pendente"
+    ClienteAnalisePedidoStatus.EM_ANALISE -> "Em análise"
+    ClienteAnalisePedidoStatus.APROVADO -> "Aprovado"
+    ClienteAnalisePedidoStatus.REPROVADO -> "Reprovado"
+    ClienteAnalisePedidoStatus.CANCELADO -> "Cancelado"
+}
+
+fun ClienteAnalisePedidoStatus.accent(): Color = when (this) {
+    ClienteAnalisePedidoStatus.PENDENTE -> Color(0xFFFFB300)
+    ClienteAnalisePedidoStatus.EM_ANALISE -> Color(0xFF7DD3FC)
+    ClienteAnalisePedidoStatus.APROVADO -> Color(0xFF20E65B)
+    ClienteAnalisePedidoStatus.REPROVADO -> Color(0xFFFF4A4A)
+    ClienteAnalisePedidoStatus.CANCELADO -> Color(0xFF9CA3AF)
 }

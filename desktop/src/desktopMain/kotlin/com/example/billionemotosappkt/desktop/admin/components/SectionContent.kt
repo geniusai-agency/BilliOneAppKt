@@ -1,6 +1,7 @@
 package com.example.billionemotosappkt.desktop.admin.components
 
 import androidx.compose.runtime.Composable
+import com.example.billionemotosappkt.desktop.admin.clientes.model.ClienteListItem
 import com.example.billionemotosappkt.desktop.admin.clientes.screens.ClientesSection
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
 import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
@@ -25,10 +26,15 @@ fun SectionContent(
     apiAccessToken: String?,
     motoTab: MotoSectionTab,
     onMotoTabChange: (MotoSectionTab) -> Unit,
+    onOpenClienteDetail: (ClienteListItem) -> Unit,
 ) {
     when (section) {
         AdminSection.DASHBOARD -> DashboardSection(snapshot = snapshot, compact = compact)
-        AdminSection.CLIENTES -> ClientesSection(api = api, compact = compact)
+        AdminSection.CLIENTES -> ClientesSection(
+            api = api,
+            compact = compact,
+            onOpenClienteDetail = onOpenClienteDetail,
+        )
         AdminSection.MOTOS -> MotosSection(
             api = api,
             apiBaseUrl = apiBaseUrl,

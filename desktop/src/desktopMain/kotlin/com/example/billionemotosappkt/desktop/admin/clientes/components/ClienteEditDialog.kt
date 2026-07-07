@@ -291,7 +291,6 @@ fun ClienteEditDialog(
 					// SEÇÃO 5: Upload de Novas Imagens
 					FormSection(title = "Documentação (Upload)") {
 						Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-							println(form)
 							FileUploadField(
 								label = "Foto CNH",
 								initialUrl = form.cnhUrl,
@@ -363,7 +362,6 @@ fun ClienteEditDialog(
 											telefoneEmergencia1 = form.telefoneEmergencia1.orEmpty(),
 											telefoneEmergencia2 = form.telefoneEmergencia2.orEmpty(),
 											observacoes = form.observacoes.orEmpty(),
-											status = form.status,
 											planoId = form.planoId.orEmpty(),
 											comprovanteData = form.comprovanteData.orEmpty(),
 											cnhFile = cnhFile,

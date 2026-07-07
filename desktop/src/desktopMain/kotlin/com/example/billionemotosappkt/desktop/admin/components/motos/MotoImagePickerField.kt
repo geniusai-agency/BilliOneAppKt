@@ -49,6 +49,9 @@ fun MotoImagePickerField(
 	onImageSelected: (String, UploadFileRequest?) -> Unit,
 	apiBaseUrl: String,
 	apiAccessToken: String?,
+	title: String = "Imagem do modelo",
+	description: String = "Selecione um arquivo real do computador.",
+	buttonLabel: String = "Selecionar imagem",
 ) {
 	val previewResource = remember(imageValue) {
 		resolveMotoImagePreview(imageValue, apiBaseUrl)
@@ -70,13 +73,13 @@ fun MotoImagePickerField(
 			) {
 				Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
 					Text(
-						text = "Imagem do modelo",
+						text = title,
 						color = Color.White,
 						fontSize = 14.sp,
 						fontWeight = FontWeight.Bold,
 					)
 					Text(
-						text = "Selecione um arquivo real do computador.",
+						text = description,
 						color = Color.White.copy(alpha = 0.55f),
 						fontSize = 11.sp,
 					)
@@ -166,7 +169,7 @@ fun MotoImagePickerField(
 						) {
 							Icon(Icons.Default.Image, contentDescription = null)
 							Spacer(modifier = Modifier.width(8.dp))
-							Text(if (imageValue.isBlank()) "Selecionar imagem" else "Trocar imagem")
+							Text(if (imageValue.isBlank()) buttonLabel else "Trocar imagem")
 						}
 					}
 				}
