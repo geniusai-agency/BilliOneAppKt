@@ -1,6 +1,7 @@
 package com.example.billionemotosappkt.shared.api
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.readBytes
 import io.ktor.client.request.forms.FormBuilder
@@ -11,6 +12,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Url
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.takeFrom
@@ -46,15 +48,54 @@ class BillioneMotosApi(
     }
 
     suspend fun fetchRawBytes(url: String): ByteArray {
-        val response: HttpResponse = client.get(url) {
-            config.defaultHeaders.forEach { (key, value) ->
-                header(key, value)
-            }
-            config.accessTokenProvider()?.let { token ->
-                header(HttpHeaders.Authorization, "Bearer $token")
+        return tryFetchRawBytes(url) ?: throw ApiException(
+            statusCode = 401,
+            message = "Nao foi possivel carregar o arquivo.",
+        )
+    }
+
+    private suspend fun tryFetchRawBytes(url: String): ByteArray? {
+        val resolvedUrl = resolveUrl(url)
+        val sendAuth = shouldSendAuth(resolvedUrl)
+
+        suspend fun execute(): HttpResponse {
+            return client.get(resolvedUrl) {
+                config.defaultHeaders.forEach { (key, value) ->
+                    header(key, value)
+                }
+                if (sendAuth) {
+                    config.accessTokenProvider()?.let { token ->
+                        header(HttpHeaders.Authorization, "Bearer $token")
+                    }
+                }
             }
         }
+
+        val response = execute()
+        if (sendAuth && response.status.value == 401) {
+            if (attemptTokenRefresh()) {
+                return execute().readBytes()
+            }
+            return null
+        }
+
         return response.readBytes()
+    }
+
+    private fun resolveUrl(url: String): String {
+        if (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true)) {
+            return url
+        }
+        val base = config.baseUrl.trimEnd('/')
+        return if (url.startsWith('/')) "$base$url" else "$base/$url"
+    }
+
+    private fun shouldSendAuth(resolvedUrl: String): Boolean {
+        val baseUrl = runCatching { Url(config.baseUrl) }.getOrNull() ?: return false
+        val targetUrl = runCatching { Url(resolvedUrl) }.getOrNull() ?: return false
+        return baseUrl.protocol.name == targetUrl.protocol.name &&
+            baseUrl.host == targetUrl.host &&
+            baseUrl.port == targetUrl.port
     }
 
     private suspend fun attemptTokenRefresh(): Boolean {
@@ -84,6 +125,65 @@ class BillioneMotosApi(
                 } else throw e
             } else throw e
         }
+    }
+
+    private suspend fun callText(
+        method: HttpMethod,
+        path: String,
+        query: Map<String, Any?> = emptyMap(),
+        authorized: Boolean = true,
+    ): String {
+        return try {
+            performCallText(method, path, query, authorized)
+        } catch (e: ApiException) {
+            if (authorized && e.statusCode == 401) {
+                if (attemptTokenRefresh()) {
+                    performCallText(method, path, query, authorized)
+                } else throw e
+            } else throw e
+        }
+    }
+
+    private suspend fun performCallText(
+        method: HttpMethod,
+        path: String,
+        query: Map<String, Any?> = emptyMap(),
+        authorized: Boolean = true,
+    ): String {
+        logRequest(method, path, query, null, authorized)
+
+        val response: HttpResponse = client.request {
+            this.method = method
+            url {
+                takeFrom(config.baseUrl)
+                val segments = path.trim('/').split('/').filter { it.isNotBlank() }
+                appendPathSegments(*segments.toTypedArray())
+                query.forEach { (key, value) ->
+                    if (value == null) return@forEach
+                    when (value) {
+                        is Iterable<*> -> value.forEach { item ->
+                            if (item != null) parameters.append(key, item.toString())
+                        }
+                        else -> parameters.append(key, value.toString())
+                    }
+                }
+            }
+            config.defaultHeaders.forEach { (key, value) ->
+                header(key, value)
+            }
+            if (authorized) {
+                config.accessTokenProvider()?.let { token ->
+                    header(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }
+
+        val rawBody = response.bodyAsText()
+        if (response.status.value !in 200..299) {
+            throw mapException(response.status.value, rawBody)
+        }
+
+        return rawBody
     }
 
     private suspend inline fun <reified T> performCall(
@@ -297,7 +397,7 @@ class BillioneMotosApi(
                 appendText("estado", request.estado)
                 appendText("cep", request.cep)
                 appendText("planoId", request.planoId)
-                appendText("modelo", request.modelo)
+                appendText("modeloMotoId", request.modeloMotoId)
                 appendText("dataInicio", request.dataInicio)
                 if (cnhImage != null) appendFile("cnhImage", cnhImage)
                 if (identidadeImage != null) appendFile("identidadeImage", identidadeImage)
@@ -393,10 +493,7 @@ class BillioneMotosApi(
 
         suspend fun list(query: ListMotosQuery = ListMotosQuery()): PagedResponse<MotoResponse> =
             call(HttpMethod.Get, "/motos", query = query.toQueryMap())
-
-        suspend fun listDisponiveis(query: ListMotosQuery = ListMotosQuery()): PagedResponse<MotoResponse> =
-            call(HttpMethod.Get, "/motos/disponiveis", query = query.toQueryMap())
-
+        
         suspend fun modelos(): List<MotoModeloResponse> =
             call(HttpMethod.Get, "/modelos-moto", authorized = false)
 
@@ -480,6 +577,9 @@ class BillioneMotosApi(
                 authorized = false,
             )
 
+        suspend fun preview(id: String): String =
+            callText(HttpMethod.Get, "/contratos/$id/preview")
+
         suspend fun approve(id: String): ContratoResponse =
             call(HttpMethod.Patch, "/contratos/$id/aprovar")
 
@@ -488,6 +588,12 @@ class BillioneMotosApi(
 
         suspend fun get(id: String): ContratoResponse =
             call(HttpMethod.Get, "/contratos/$id")
+
+        suspend fun update(id: String, request: UpdateContratoRequest): ContratoResponse =
+            call(HttpMethod.Patch, "/contratos/$id", body = request)
+
+        suspend fun cancelar(id: String): ContratoResponse =
+            call(HttpMethod.Patch, "/contratos/$id/cancelar")
 
         suspend fun parcelas(id: String, query: ListParcelasQuery = ListParcelasQuery()): PagedResponse<ParcelaResponse> =
             call(HttpMethod.Get, "/contratos/$id/parcelas", query = query.toQueryMap())

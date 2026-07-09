@@ -40,8 +40,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.billionemotosappkt.desktop.auth.AuthenticationContextResponse
+import com.example.billionemotosappkt.desktop.admin.components.clientes.ClientesSubsectionChip
+import com.example.billionemotosappkt.desktop.admin.components.clientes.ClientesSubsectionToggle
 import com.example.billionemotosappkt.desktop.admin.model.AdminNavItem
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
+import com.example.billionemotosappkt.desktop.admin.model.ClientesSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.adminNavItems
 
@@ -49,8 +52,10 @@ import com.example.billionemotosappkt.desktop.admin.model.adminNavItems
 fun AdminSidebar(
     authContext: AuthenticationContextResponse?,
     section: AdminSection,
+    clientesTab: ClientesSectionTab,
     motoTab: MotoSectionTab,
     onSectionChange: (AdminSection) -> Unit,
+    onClientesTabChange: (ClientesSectionTab) -> Unit,
     onMotoTabChange: (MotoSectionTab) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -120,6 +125,13 @@ fun AdminSidebar(
                         selected = item.section == section,
                         onClick = { onSectionChange(item.section) },
                     )
+                    if (item.section == AdminSection.CLIENTES) {
+                        ClientesSidebarSubitems(
+                            visible = section == AdminSection.CLIENTES,
+                            selectedTab = clientesTab,
+                            onTabChange = onClientesTabChange,
+                        )
+                    }
                     if (item.section == AdminSection.MOTOS) {
                         MotosSidebarSubitems(
                             visible = section == AdminSection.MOTOS,
@@ -173,6 +185,28 @@ fun CompactNavigationBar(
 }
 
 @Composable
+fun ClientesSubsectionBar(
+    selectedTab: ClientesSectionTab,
+    onTabChange: (ClientesSectionTab) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ClientesSectionTab.entries.forEach { tab ->
+            val selected = selectedTab == tab
+            ClientesSubsectionChip(
+                label = tab.label,
+                selected = selected,
+                onClick = { onTabChange(tab) },
+            )
+        }
+    }
+}
+
+@Composable
 fun MotoSubsectionBar(
     selectedTab: MotoSectionTab,
     onTabChange: (MotoSectionTab) -> Unit,
@@ -203,6 +237,49 @@ fun MotoSubsectionBar(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClientesSidebarSubitems(
+    visible: Boolean,
+    selectedTab: ClientesSectionTab,
+    onTabChange: (ClientesSectionTab) -> Unit,
+) {
+    if (!visible) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 4.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        ClientesSectionTab.entries.forEach { tab ->
+            val selected = tab == selectedTab
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) Color(0xFF0F1711) else Color.Transparent)
+                    .clickable { onTabChange(tab) }
+                    .padding(horizontal = 10.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.35f)),
+                )
+                Text(
+                    text = tab.label,
+                    color = if (selected) Color(0xFF20E65B) else Color.White.copy(alpha = 0.72f),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }

@@ -2,6 +2,7 @@ package com.example.billionemotosappkt.desktop.admin.components
 
 import androidx.compose.runtime.Composable
 import com.example.billionemotosappkt.desktop.admin.clientes.model.ClienteListItem
+import com.example.billionemotosappkt.desktop.admin.model.ClientesSectionTab
 import com.example.billionemotosappkt.desktop.admin.clientes.screens.ClientesSection
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
 import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
@@ -11,6 +12,7 @@ import com.example.billionemotosappkt.desktop.admin.screens.FinanceiroSection
 import com.example.billionemotosappkt.desktop.admin.screens.ManutencaoSection
 import com.example.billionemotosappkt.desktop.admin.screens.MotosSection
 import com.example.billionemotosappkt.desktop.admin.screens.OrdemServicoSection
+import com.example.billionemotosappkt.desktop.admin.screens.PlanosSection
 import com.example.billionemotosappkt.desktop.admin.screens.RastreamentoSection
 import com.example.billionemotosappkt.desktop.admin.screens.RelatoriosSection
 import com.example.billionemotosappkt.desktop.admin.screens.SantanderSection
@@ -24,6 +26,8 @@ fun SectionContent(
     api: BillioneMotosApi,
     apiBaseUrl: String,
     apiAccessToken: String?,
+    clientesTab: ClientesSectionTab,
+    onClientesTabChange: (ClientesSectionTab) -> Unit,
     motoTab: MotoSectionTab,
     onMotoTabChange: (MotoSectionTab) -> Unit,
     onOpenClienteDetail: (ClienteListItem) -> Unit,
@@ -33,8 +37,11 @@ fun SectionContent(
         AdminSection.CLIENTES -> ClientesSection(
             api = api,
             compact = compact,
+            selectedTab = clientesTab,
+            onTabChange = onClientesTabChange,
             onOpenClienteDetail = onOpenClienteDetail,
         )
+        AdminSection.PLANOS -> PlanosSection(api = api)
         AdminSection.MOTOS -> MotosSection(
             api = api,
             apiBaseUrl = apiBaseUrl,

@@ -70,6 +70,7 @@ import com.example.billionemotosappkt.shared.api.UpdateClienteRequest
 import java.awt.Desktop
 import java.io.File
 import java.net.URI
+import com.example.billionemotosappkt.desktop.admin.clientes.components.editparts.*
 
 // Modelo auxiliar simples para mapear a listagem
 data class PlanoOpcao(val id: String, val nome: String)
@@ -404,20 +405,6 @@ fun ClienteEditDialog(
 	}
 }
 
-// FormSection e EditField mantidos idênticos aqui abaixo...
-@Composable
-private fun FormSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-	Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-		Text(
-			title.uppercase(),
-			fontSize = 11.sp,
-			fontWeight = FontWeight.Bold,
-			color = Color(0xFF20E65B)
-		)
-		content()
-	}
-}
-
 data class ItensSelect(val name: String, val value: String) {}
 
 // 1. Corrija o SelectEditField para aceitar um modifier
@@ -639,42 +626,6 @@ fun FileUploadField(
 		}
 	}
 }
-
-@Composable
-private fun EditField(
-	label: String,
-	value: String,
-	onValueChange: (String) -> Unit,
-	modifier: Modifier = Modifier,
-	singleLine: Boolean = true,
-	minLines: Int = 1,
-	enabled: Boolean = true,
-	visualTransformation: VisualTransformation = VisualTransformation.None
-) {
-	OutlinedTextField(
-		value = value,
-		onValueChange = onValueChange,
-		label = { Text(label) },
-		modifier = modifier.fillMaxWidth(),
-		singleLine = singleLine,
-		minLines = minLines,
-		enabled = enabled,
-		visualTransformation = visualTransformation,
-		shape = RoundedCornerShape(12.dp),
-		colors = OutlinedTextFieldDefaults.colors(
-			focusedTextColor = Color.White,
-			unfocusedTextColor = Color.White,
-			disabledTextColor = Color.White.copy(0.4f),
-			unfocusedBorderColor = Color.White.copy(0.1f),
-			focusedBorderColor = Color(0xFF20E65B),
-			disabledBorderColor = Color.White.copy(0.05f),
-			unfocusedLabelColor = Color.White.copy(0.4f),
-			focusedLabelColor = Color(0xFF20E65B),
-			disabledLabelColor = Color.White.copy(0.2f)
-		)
-	)
-}
-
 
 data class EstadoOpcao(val sigla: String, val nome: String)
 

@@ -26,13 +26,9 @@ import com.example.billionemotosappkt.shared.api.ApiConfig
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_BILLIONE_API_BASE_URL = "https://engulf-blaming-scorpion.ngrok-free.dev"
-
 @Composable
 fun BillioneDesktopPortalApp() {
-    val authBaseUrl = remember {
-        System.getenv("BILLIONE_API_BASE_URL")?.takeIf { it.isNotBlank() } ?: DEFAULT_BILLIONE_API_BASE_URL
-    }
+    val authBaseUrl = remember { DesktopConfig.apiBaseUrl }
     val authClient = remember(authBaseUrl) { DesktopAuthClient(authBaseUrl) }
     val adminApi = remember(authBaseUrl, authClient) {
         BillioneMotosApi(

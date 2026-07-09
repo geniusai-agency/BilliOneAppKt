@@ -369,7 +369,7 @@ data class SolicitarAnaliseRequest(
     val estado: String,
     val cep: String,
     val planoId: String,
-    val modelo: String,
+    val modeloMotoId: String,
     val dataInicio: String? = null,
 )
 
@@ -960,6 +960,7 @@ data class ContratoResponse(
     val observacoes: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val pdfUrl: String? = null,
     val cliente: ClienteResponse? = null,
     val moto: MotoResponse? = null,
     val plano: PlanoResponse? = null,

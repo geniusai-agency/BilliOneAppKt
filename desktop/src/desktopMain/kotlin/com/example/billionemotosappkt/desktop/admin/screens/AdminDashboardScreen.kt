@@ -30,6 +30,7 @@ import com.example.billionemotosappkt.desktop.admin.components.MotoSubsectionBar
 import com.example.billionemotosappkt.desktop.admin.components.SectionContent
 import com.example.billionemotosappkt.desktop.admin.components.TopCommandBar
 import com.example.billionemotosappkt.desktop.admin.model.AdminSection
+import com.example.billionemotosappkt.desktop.admin.model.ClientesSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.desktop.admin.model.adminDashboardSnapshot
 import com.example.billionemotosappkt.desktop.admin.repository.AdminDashboardRepository
@@ -53,6 +54,7 @@ fun AdminDashboardScreen(
 ) {
     var snapshot by remember { mutableStateOf(adminDashboardSnapshot()) }
     var section by remember { mutableStateOf(AdminSection.DASHBOARD) }
+    var clientesTab by remember { mutableStateOf(ClientesSectionTab.CLIENTES) }
     var motoTab by remember { mutableStateOf(MotoSectionTab.FROTA) }
     var clientDetail by remember { mutableStateOf<ClienteListItem?>(null) }
 
@@ -110,6 +112,8 @@ fun AdminDashboardScreen(
                             api = api,
                             apiBaseUrl = apiBaseUrl,
                             apiAccessToken = apiAccessToken,
+                            clientesTab = clientesTab,
+                            onClientesTabChange = { clientesTab = it },
                             motoTab = motoTab,
                             onMotoTabChange = { motoTab = it },
                             onOpenClienteDetail = { clientDetail = it },
@@ -121,8 +125,10 @@ fun AdminDashboardScreen(
                     AdminSidebar(
                         authContext = authContext,
                         section = section,
+                        clientesTab = clientesTab,
                         motoTab = motoTab,
                         onSectionChange = { section = it },
+                        onClientesTabChange = { clientesTab = it },
                         onMotoTabChange = { motoTab = it },
                         onLogout = onLogout,
                         modifier = Modifier.width(252.dp).fillMaxHeight(),
@@ -161,6 +167,8 @@ fun AdminDashboardScreen(
                                 api = api,
                                 apiBaseUrl = apiBaseUrl,
                                 apiAccessToken = apiAccessToken,
+                                clientesTab = clientesTab,
+                                onClientesTabChange = { clientesTab = it },
                                 motoTab = motoTab,
                                 onMotoTabChange = { motoTab = it },
                                 onOpenClienteDetail = { clientDetail = it },

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material.icons.filled.WorkOutline
@@ -57,6 +58,7 @@ enum class AdminSection(
 ) {
     DASHBOARD("Visão de Gestão", "Resumo operacional de contratos e ordens de serviço."),
     CLIENTES("Clientes", "Cadastro, busca e ficha do cliente."),
+    PLANOS("Planos", "Catálogo comercial, valores e condições de assinatura."),
     MOTOS("Motos", "Frota, disponibilidade e manutenção."),
     RASTREAMENTO("Rastreamento", "Mapa, alertas e localização dos rastreadores."),
     CONTRATOS("Contratos", "Assinatura, vencimentos e pagamentos."),
@@ -75,9 +77,17 @@ enum class MotoSectionTab(
     MODELOS("Modelos"),
 }
 
+enum class ClientesSectionTab(
+    val label: String,
+) {
+    CLIENTES("Clientes"),
+    PEDIDOS("Pedidos"),
+}
+
 val adminNavItems = listOf(
     AdminNavItem(AdminSection.DASHBOARD, "Dashboard", Icons.Default.Dashboard),
     AdminNavItem(AdminSection.CLIENTES, "Clientes", Icons.Default.Groups),
+    AdminNavItem(AdminSection.PLANOS, "Planos", Icons.Default.ReceiptLong),
     AdminNavItem(AdminSection.MOTOS, "Motos", Icons.Default.DirectionsBike),
     AdminNavItem(AdminSection.RASTREAMENTO, "Rastreamento", Icons.Default.LocationOn),
     AdminNavItem(AdminSection.CONTRATOS, "Contratos", Icons.Default.FileCopy),

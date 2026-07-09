@@ -1,19 +1,13 @@
 package com.example.billionemotosappkt.desktop.admin.components
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -33,56 +27,28 @@ fun SegmentedToggleButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val hovered = remember { mutableStateOf(false) }
-    val bgColor by animateFloatAsState(
-        targetValue = when {
-            selected -> 1f
-            hovered.value -> 0.15f
-            else -> 0f
-        },
-        label = "toggle_bg_alpha",
-    )
+    val backgroundColor = if (selected) primary.copy(alpha = 0.15f) else Color(0xFF111614)
+    val borderColor = if (selected) primary else Color.White.copy(alpha = 0.10f)
+    val textColor = if (selected) primary else Color.White.copy(alpha = 0.6f)
 
-    Box(
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = backgroundColor,
+        border = BorderStroke(1.dp, borderColor),
         modifier = modifier
             .height(if (compactLayout) 36.dp else 40.dp)
             .pointerMoveFilter(
-                onEnter = {
-                    hovered.value = true
-                    false
-                },
-                onExit = {
-                    hovered.value = false
-                    false
-                },
+                onEnter = { false },
+                onExit = { false },
             ),
-        contentAlignment = Alignment.Center,
     ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (selected) Color.White else Color.Transparent,
-                contentColor = if (selected) Color.Black else Color.White.copy(alpha = 0.68f),
-            ),
-            border = if (selected) null else BorderStroke(0.dp, Color.Transparent),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = if (compactLayout) 10.dp else 12.dp,
-                vertical = if (compactLayout) 5.dp else 6.dp,
-            ),
-        ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = if (compactLayout) 14.dp else 16.dp)) {
             Text(
                 text = text,
-                fontSize = if (compactLayout) 11.sp else 12.sp,
+                color = textColor,
+                fontSize = if (compactLayout) 11.sp else 13.sp,
                 fontWeight = FontWeight.SemiBold,
-            )
-        }
-        if (!selected && bgColor > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White.copy(alpha = bgColor * 0.18f), RoundedCornerShape(10.dp)),
             )
         }
     }

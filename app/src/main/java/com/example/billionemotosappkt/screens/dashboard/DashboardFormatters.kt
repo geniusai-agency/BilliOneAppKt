@@ -193,13 +193,16 @@ fun contractStatusLabel(status: ContratoStatus): String = when (status) {
     ContratoStatus.CANCELADO -> "Cancelado"
 }
 
-fun clientLabel(client: ClienteResponse): String = client.nome.ifBlank { client.id.take8() }
+fun clientLabel(client: ClienteResponse): String = client.nome?.ifBlank { client.id.take8() } ?: client.id.take8()
 
 fun clientSubLabel(client: ClienteResponse): String {
     return listOfNotNull(
-        client.cpf.takeIf { it.isNotBlank() }?.let { "CPF $it" },
+        client.cpf?.takeIf { it.isNotBlank() }?.let { "CPF $it" },
         client.email?.takeIf { it.isNotBlank() },
-        listOfNotNull(client.cidade, client.estado).joinToString("/").takeIf { it.isNotBlank() },
+        listOfNotNull(client.cidade, client.estado)
+            .filterNotNull()
+            .joinToString("/")
+            .takeIf { it.isNotBlank() },
     ).joinToString(" • ")
 }
 

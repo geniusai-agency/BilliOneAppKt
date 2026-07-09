@@ -1,11 +1,13 @@
 package com.example.billionemotosappkt.desktop.admin.components.motos
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,28 +44,29 @@ private fun MotoFilterChip(label: String, selected: Boolean, onClick: () -> Unit
 	}
 }
 
+fun motoStatusLabel(status: MotoStatus): String = when (status) {
+	MotoStatus.DISPONIVEL -> "Disponível"
+	MotoStatus.PENDENTE_CONTRATO -> "Pendente"
+	MotoStatus.CONTRATADA -> "Contratada"
+	MotoStatus.ALUGADA -> "Alugada"
+	MotoStatus.AGUARDANDO_DEVOLUCAO -> "Devolução"
+	MotoStatus.BLOQUEADA -> "Bloqueada"
+	MotoStatus.MANUTENCAO -> "Manutenção"
+}
+
 @Composable
 fun MotoFiltersRow(selectedStatus: MotoStatus?, onStatusChange: (MotoStatus?) -> Unit) {
-	Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+	Row(
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+		modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+	) {
 		MotoFilterChip(
 			label = "Todas",
 			selected = selectedStatus == null,
 			onClick = { onStatusChange(null) })
-		val visibleStatuses = listOf(
-			MotoStatus.DISPONIVEL,
-			MotoStatus.ALUGADA,
-			MotoStatus.MANUTENCAO,
-			MotoStatus.BLOQUEADA
-		)
-		visibleStatuses.forEach { status ->
+		MotoStatus.entries.forEach { status ->
 			MotoFilterChip(
-				label = when (status) {
-					MotoStatus.DISPONIVEL -> "Disponível"
-					MotoStatus.ALUGADA -> "Alugada"
-					MotoStatus.MANUTENCAO -> "Manutenção"
-					MotoStatus.BLOQUEADA -> "Bloqueada"
-					else -> status.name
-				},
+				label = motoStatusLabel(status),
 				selected = selectedStatus == status,
 				onClick = { onStatusChange(status) }
 			)

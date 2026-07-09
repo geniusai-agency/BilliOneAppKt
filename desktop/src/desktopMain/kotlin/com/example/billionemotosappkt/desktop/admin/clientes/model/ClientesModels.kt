@@ -93,6 +93,7 @@ data class AnaliseListItem(
     val cnhCategoria: String = "",
     val planoId: String = "",
     val planoNome: String = "",
+    val modeloMotoId: String = "",
     val motoId: String = "",
     val motoNome: String = "",
     val cnhUrl: String = "",
@@ -170,6 +171,12 @@ fun ClienteResponse.toListItem(): ClienteListItem {
     val cpfCliente = cpf ?: usuario?.cpf.orEmpty()
     val emailCliente = email ?: usuario?.email.orEmpty()
     val telefoneCliente = telefone ?: usuario?.telefone.orEmpty()
+    val contratoAtual = contratos.firstOrNull { it.status == com.example.billionemotosappkt.shared.api.ContratoStatus.ATIVO }
+        ?: contrato
+        ?: contratos.firstOrNull()
+    val motoAtual = contratoAtual?.moto
+    val planoAtual = plano ?: contratoAtual?.plano
+    val planoNome = planoAtual?.nome ?: contratoAtual?.planoSnapshotNome.orEmpty()
 
     return ClienteListItem(
         id = id,
@@ -193,11 +200,11 @@ fun ClienteResponse.toListItem(): ClienteListItem {
         identidadeUrl = identidadeUrl ?: "",
         comprovanteResidenciaUrl = comprovanteResidenciaUrl ?: "",
         planoId = planoId ?: "",
-        planoNome = "",
-        contratoId = "",
-        contratoStatus = "",
-        motoNome = "",
-        motoPlaca = "",
+        planoNome = planoNome,
+        contratoId = contratoAtual?.id.orEmpty(),
+        contratoStatus = contratoAtual?.status?.name.orEmpty(),
+        motoNome = motoAtual?.modelo ?: motoAtual?.modeloMoto?.nome.orEmpty(),
+        motoPlaca = motoAtual?.placa.orEmpty(),
         comprovanteData = comprovanteData ?: "" // Mapeado da response
     )
 }
@@ -231,6 +238,7 @@ fun ClienteAnalisePedidoResponse.toListItem(): AnaliseListItem {
         cnhCategoria = payloadLocal.asString("cnhCategoria"),
         planoId = payloadLocal.asString("planoId"),
         planoNome = plano?.nome.orEmpty(),
+        modeloMotoId = payloadLocal.asString("modeloMotoId"),
         motoId = payloadLocal.asString("motoId"),
         motoNome = payloadLocal.asString("modelo"),
         cnhUrl = payloadLocal.asString("cnhUrl"),

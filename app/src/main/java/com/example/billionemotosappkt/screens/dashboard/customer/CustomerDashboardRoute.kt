@@ -15,8 +15,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -78,7 +83,7 @@ fun CustomerDashboardRoute(
 	var analysisState by rememberSaveable { mutableStateOf("") }
 	var analysisCep by rememberSaveable { mutableStateOf("") }
 	var analysisPlanId by rememberSaveable { mutableStateOf("") }
-	var analysisModel by rememberSaveable { mutableStateOf("") }
+	var analysisModelId by rememberSaveable { mutableStateOf("") }
 
 	val avatarPicker = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.GetContent(),
@@ -114,7 +119,7 @@ fun CustomerDashboardRoute(
 			analysisState = ""
 			analysisCep = ""
 			analysisPlanId = state.availablePlans.firstOrNull()?.id.orEmpty()
-			analysisModel = state.availableModels.firstOrNull()?.modelo.orEmpty()
+			analysisModelId = state.availableModels.firstOrNull()?.id.orEmpty()
 		}
 	}
 
@@ -202,7 +207,7 @@ fun CustomerDashboardRoute(
 			stateValue = analysisState,
 			cep = analysisCep,
 			planId = analysisPlanId,
-			model = analysisModel,
+			model = analysisModelId,
 			isSubmitting = state.isSubmittingAnalysis,
 			availablePlans = state.availablePlans,
 			availableModels = state.availableModels,
@@ -220,7 +225,7 @@ fun CustomerDashboardRoute(
 			onStateChange = { analysisState = it },
 			onCepChange = { analysisCep = it },
 			onPlanIdChange = { analysisPlanId = it },
-			onModelChange = { analysisModel = it },
+			onModelChange = { analysisModelId = it },
 			onSubmit = {
 				viewModel.requestAnalysis(
 					request = SolicitarAnaliseRequest(
@@ -238,7 +243,7 @@ fun CustomerDashboardRoute(
 						estado = analysisState.trim(),
 						cep = analysisCep.trim(),
 						planoId = analysisPlanId.trim(),
-						modelo = analysisModel.trim(),
+						modeloMotoId = analysisModelId.trim(),
 					),
 				)
 				showAnalysisDialog = false
@@ -335,6 +340,7 @@ private fun ProfileEditorDialog(
 	}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RequestAnalysisDialog(
 	cnh: String,
@@ -373,6 +379,17 @@ private fun RequestAnalysisDialog(
 	onSubmit: () -> Unit,
 	onDismiss: () -> Unit,
 ) {
+	val selectedModel = availableModels.firstOrNull {
+		it.id == model || it.nome == model || it.modelo == model
+	}
+	val selectedModelLabel = selectedModel?.let {
+		listOfNotNull(it.nome, it.modelo, it.marca)
+			.filter { value -> value.isNotBlank() }
+			.joinToString(" • ")
+			.ifBlank { it.id.orEmpty() }
+	}.orEmpty().ifBlank { "Selecione um modelo" }
+	var modelMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
 	Dialog(onDismissRequest = onDismiss) {
 		Card(
 			colors = CardDefaults.cardColors(
@@ -406,7 +423,38 @@ private fun RequestAnalysisDialog(
 				OutlinedTextField(value = stateValue, onValueChange = onStateChange, label = { Text("Estado") }, modifier = Modifier.fillMaxWidth())
 				OutlinedTextField(value = cep, onValueChange = onCepChange, label = { Text("CEP") }, modifier = Modifier.fillMaxWidth())
 				OutlinedTextField(value = planId, onValueChange = onPlanIdChange, label = { Text("Plano ID") }, modifier = Modifier.fillMaxWidth())
-				OutlinedTextField(value = model, onValueChange = onModelChange, label = { Text("Modelo") }, modifier = Modifier.fillMaxWidth())
+				ExposedDropdownMenuBox(
+					expanded = modelMenuExpanded,
+					onExpandedChange = { modelMenuExpanded = !modelMenuExpanded },
+				) {
+					OutlinedTextField(
+						value = selectedModelLabel,
+						onValueChange = {},
+						readOnly = true,
+						label = { Text("Modelo") },
+						trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = modelMenuExpanded) },
+						modifier = Modifier.fillMaxWidth(),
+						colors = OutlinedTextFieldDefaults.colors(),
+					)
+					ExposedDropdownMenu(
+						expanded = modelMenuExpanded,
+						onDismissRequest = { modelMenuExpanded = false },
+					) {
+						availableModels.forEach { motoModel ->
+							val label = listOfNotNull(motoModel.nome, motoModel.modelo, motoModel.marca)
+								.filter { it.isNotBlank() }
+								.joinToString(" • ")
+								.ifBlank { motoModel.id.orEmpty() }
+							DropdownMenuItem(
+								text = { Text(label) },
+								onClick = {
+									onModelChange(motoModel.id.orEmpty())
+									modelMenuExpanded = false
+								},
+							)
+						}
+					}
+				}
 				if (availablePlans.isNotEmpty()) {
 					Text(
 						text = "Planos disponíveis: ${availablePlans.joinToString { it.nome }}",
@@ -414,12 +462,12 @@ private fun RequestAnalysisDialog(
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
 				}
-					if (availableModels.isNotEmpty()) {
-						Text(
-							text = "Modelos disponíveis: ${availableModels.take(5).joinToString { it.nome ?: it.modelo ?: it.id.orEmpty() }}",
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+				if (availableModels.isNotEmpty()) {
+					Text(
+						text = "Modelos disponíveis: ${availableModels.take(5).joinToString { it.nome ?: it.modelo ?: it.id.orEmpty() }}",
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+					)
 				}
 				Button(onClick = onSubmit, enabled = !isSubmitting) {
 					Text(if (isSubmitting) "Enviando..." else "Enviar análise")

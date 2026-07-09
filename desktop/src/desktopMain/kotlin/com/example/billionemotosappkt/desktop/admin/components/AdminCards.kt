@@ -45,6 +45,7 @@ import com.example.billionemotosappkt.desktop.admin.model.AdminChartPoint
 import com.example.billionemotosappkt.desktop.admin.model.AdminDashboardSnapshot
 import com.example.billionemotosappkt.desktop.admin.model.AdminListItem
 import com.example.billionemotosappkt.desktop.admin.model.AdminMetric
+import com.example.billionemotosappkt.desktop.admin.components.cardsparts.*
 
 @Composable
 fun DashboardSection(
@@ -751,71 +752,4 @@ fun DetailGrid(items: List<String>) {
             }
         }
     }
-}
-
-@Composable
-private fun SimpleListItem(item: AdminListItem) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF111614))
-            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(14.dp))
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                text = item.title,
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = item.subtitle,
-                color = Color.White.copy(alpha = 0.52f),
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(Color(0xFF0C1510))
-                .border(1.dp, Color(0xFF20E65B).copy(alpha = 0.24f), RoundedCornerShape(999.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-        ) {
-            Text(
-                text = item.badge,
-                color = Color(0xFF20E65B),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-    }
-}
-
-@Composable
-private fun EmptyState(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(96.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            color = Color.White.copy(alpha = 0.5f),
-            fontSize = 13.sp,
-        )
-    }
-}
-
-@Composable
-private fun SpacerV(height: Int) {
-    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(height.dp))
 }
