@@ -29,6 +29,7 @@ data class ContratoResponse(
     val planoSnapshotNivel: String = "",
     val dataInicio: String = "",
     val dataFim: String? = null,
+    val assinadoEm: String? = null,
     val status: ContratoStatus = ContratoStatus.ATIVO,
 )
 

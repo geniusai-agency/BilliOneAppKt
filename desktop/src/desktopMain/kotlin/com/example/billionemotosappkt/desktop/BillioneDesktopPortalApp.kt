@@ -37,9 +37,9 @@ fun BillioneDesktopPortalApp() {
                 accessTokenProvider = { authClient.currentAccessToken() },
                 refreshTokenProvider = { authClient.currentRefreshToken() },
                 onTokenRefreshed = { access, refresh ->
-                    // Salva os novos tokens para as próximas requisições
                     authClient.saveTokens(access, refresh)
-                }
+                },
+                onAuthFailed = { authClient.clearTokens() }
             ),
         )
     }

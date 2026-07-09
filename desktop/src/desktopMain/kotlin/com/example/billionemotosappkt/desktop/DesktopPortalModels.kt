@@ -5,15 +5,3 @@ enum class DesktopPortalScreen {
     ADMIN_DASHBOARD,
     SITE,
 }
-
-enum class DesktopLoginMode {
-    LOGIN,
-    SIGNUP,
-    FORGOT,
-}
-
-enum class MessageTone {
-    NEUTRAL,
-    SUCCESS,
-    ERROR,
-}

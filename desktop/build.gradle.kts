@@ -17,13 +17,14 @@ kotlin {
 				implementation(compose.desktop.currentOs)
 				implementation(compose.material3)
 				implementation(compose.materialIconsExtended)
-				implementation("org.jetbrains.compose.ui:ui-tooling-preview")
+				implementation(libs.ui.tooling.preview)
+				// implementation(libs.androidx.activity.compose.v1101)
 				implementation(project(":shared"))
 				implementation(libs.ktor.client.cio)
 				implementation(libs.ktor.client.content.negotiation)
 				implementation(libs.ktor.serialization.kotlinx.json)
 				implementation(libs.kotlinx.serialization.json)
-				implementation("org.apache.pdfbox:pdfbox:3.0.7")
+				implementation(libs.pdfbox)
 			}
 		}
 	}

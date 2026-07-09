@@ -14,7 +14,7 @@ enum class UserKind { INTERNAL, CLIENT }
 enum class UserStatus { ACTIVE, INVITED, PENDING_PASSWORD, SUSPENDED, ARCHIVED }
 
 @Serializable
-enum class ClienteAprovacaoStatus { PENDENTE, EM_ANALISE, APROVADO, APROVADO_COM_RESSALVA, REPROVADO }
+enum class ClienteAprovacaoStatus { PENDENTE, EM_ANALISE, APROVADO, APROVADO_COM_RESSALVA, REPROVADO, AGUARDANDO_ASSINATURA }
 
 @Serializable
 enum class ClienteAnalisePedidoStatus { PENDENTE, EM_ANALISE, APROVADO, REPROVADO, CANCELADO }
@@ -84,6 +84,10 @@ enum class TicketCategoria {
     SEGUNDA_VIA_BOLETO,
     NEGOCIACAO,
     COMPROVANTE_PAGAMENTO,
+    MANUTENCAO,
+    SOCORRO,
+    DUVIDA,
+    AJUDA,
     OUTROS,
 }
 
@@ -250,7 +254,8 @@ data class AuthenticationContextResponse(
 
 @Serializable
 data class CreateLoginRequest(
-    val email: String,
+    val email: String? = null,
+    val cpf: String? = null,
     val password: String,
 )
 
@@ -943,6 +948,8 @@ data class ContratoResponse(
     val periodicidade: ContratoPeriodicidade,
     val dataInicio: String,
     val dataFim: String? = null,
+    val assinadoEm: String? = null,
+    val assinadoIp: String? = null,
     val valorParcela: String,
     val numParcelas: Int,
     val valorEntrada: String = "0",
@@ -1118,6 +1125,7 @@ data class ListTicketsQuery(
     val prioridade: TicketPrioridade? = null,
     val clienteId: String? = null,
     val contratoId: String? = null,
+    val motoId: String? = null,
     val createdFrom: String? = null,
     val createdTo: String? = null,
     val q: String? = null,
@@ -1132,6 +1140,7 @@ data class CreateTicketRequest(
     val prioridade: TicketPrioridade? = null,
     val clienteId: String? = null,
     val contratoId: String? = null,
+    val motoId: String? = null,
     val parcelaId: String? = null,
     val despesaId: String? = null,
     val valorEnvolvido: Double? = null,
@@ -1147,6 +1156,7 @@ data class UpdateTicketRequest(
     val status: TicketStatus? = null,
     val clienteId: String? = null,
     val contratoId: String? = null,
+    val motoId: String? = null,
     val parcelaId: String? = null,
     val despesaId: String? = null,
     val valorEnvolvido: Double? = null,
@@ -1177,6 +1187,16 @@ data class TicketCommentResponse(
 )
 
 @Serializable
+data class TicketArquivoResponse(
+    val id: String,
+    val nomeArquivo: String? = null,
+    val mimeType: String? = null,
+    val tamanhoBytes: Long? = null,
+    val descricao: String? = null,
+    val createdAt: String? = null,
+)
+
+@Serializable
 data class TicketResponse(
     val id: String,
     val numero: Int,
@@ -1188,6 +1208,7 @@ data class TicketResponse(
     val status: TicketStatus,
     val clienteId: String? = null,
     val contratoId: String? = null,
+    val motoId: String? = null,
     val parcelaId: String? = null,
     val despesaId: String? = null,
     val responsavelId: String? = null,
@@ -1201,9 +1222,11 @@ data class TicketResponse(
     val updatedAt: String? = null,
     val cliente: ClienteResponse? = null,
     val contrato: ContratoResponse? = null,
+    val moto: MotoResponse? = null,
     val parcela: ParcelaResponse? = null,
     val despesa: DespesaResponse? = null,
     val comentarios: List<TicketCommentResponse> = emptyList(),
+    val arquivos: List<TicketArquivoResponse> = emptyList(),
 )
 
 @Serializable

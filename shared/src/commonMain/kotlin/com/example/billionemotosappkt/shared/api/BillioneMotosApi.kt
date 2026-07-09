@@ -71,8 +71,11 @@ class BillioneMotosApi(
             }
         }
 
+        if (sendAuth && config.accessTokenProvider().isNullOrBlank()) {
+            attemptTokenRefresh()
+        }
         val response = execute()
-        if (sendAuth && response.status.value == 401) {
+        if (sendAuth && (response.status.value == 401 || response.status.value == 403)) {
             if (attemptTokenRefresh()) {
                 return execute().readBytes()
             }
@@ -116,10 +119,13 @@ class BillioneMotosApi(
         body: Any? = null,
         authorized: Boolean = true,
     ): T {
+        if (authorized && config.accessTokenProvider().isNullOrBlank()) {
+            attemptTokenRefresh()
+        }
         return try {
             performCall<T>(method, path, query, body, authorized)
         } catch (e: ApiException) {
-            if (authorized && e.statusCode == 401) {
+            if (authorized && (e.statusCode == 401 || e.statusCode == 403 || e.message?.contains("token", ignoreCase = true) == true)) {
                 if (attemptTokenRefresh()) {
                     performCall<T>(method, path, query, body, authorized)
                 } else throw e
@@ -133,10 +139,13 @@ class BillioneMotosApi(
         query: Map<String, Any?> = emptyMap(),
         authorized: Boolean = true,
     ): String {
+        if (authorized && config.accessTokenProvider().isNullOrBlank()) {
+            attemptTokenRefresh()
+        }
         return try {
             performCallText(method, path, query, authorized)
         } catch (e: ApiException) {
-            if (authorized && e.statusCode == 401) {
+            if (authorized && (e.statusCode == 401 || e.statusCode == 403 || e.message?.contains("token", ignoreCase = true) == true)) {
                 if (attemptTokenRefresh()) {
                     performCallText(method, path, query, authorized)
                 } else throw e
@@ -248,10 +257,13 @@ class BillioneMotosApi(
         authorized: Boolean = true,
         build: FormBuilder.() -> Unit,
     ): T {
+        if (authorized && config.accessTokenProvider().isNullOrBlank()) {
+            attemptTokenRefresh()
+        }
         return try {
             performMultipartCall<T>(method, path, authorized, build)
         } catch (e: ApiException) {
-            if (authorized && e.statusCode == 401) {
+            if (authorized && (e.statusCode == 401 || e.statusCode == 403 || e.message?.contains("token", ignoreCase = true) == true)) {
                 if (attemptTokenRefresh()) {
                     performMultipartCall<T>(method, path, authorized, build)
                 } else throw e
@@ -651,6 +663,22 @@ class BillioneMotosApi(
 
         suspend fun listComments(id: String): List<TicketCommentResponse> =
             call(HttpMethod.Get, "/tickets/$id/comentarios")
+
+        suspend fun addPhoto(
+            id: String,
+            file: UploadFileRequest,
+            descricao: String? = null,
+        ): TicketArquivoResponse =
+            multipartCall(HttpMethod.Post, "/tickets/$id/fotos") {
+                appendFile("file", file)
+                appendText("descricao", descricao)
+            }
+
+        suspend fun listPhotos(id: String): List<TicketArquivoResponse> =
+            call(HttpMethod.Get, "/tickets/$id/fotos")
+
+        suspend fun deletePhoto(id: String, arquivoId: String): TicketArquivoResponse =
+            call(HttpMethod.Delete, "/tickets/$id/fotos/$arquivoId")
     }
 
     inner class ManutencoesEndpoints {
@@ -855,6 +883,7 @@ private fun ListTicketsQuery.toQueryMap(): Map<String, Any?> = mapOf(
     "prioridade" to prioridade,
     "clienteId" to clienteId,
     "contratoId" to contratoId,
+    "motoId" to motoId,
     "createdFrom" to createdFrom,
     "createdTo" to createdTo,
     "q" to q,

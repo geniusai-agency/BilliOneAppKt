@@ -93,7 +93,7 @@ class DesktopAuthClient(
 					overrideToken = session.accessToken,
 				)
 			}.getOrNull() ?: run {
-				clear()
+				clearTokens()
 				null
 			}
 		}
@@ -107,7 +107,7 @@ class DesktopAuthClient(
 				authorized = true,
 			)
 		} finally {
-			clear()
+			clearTokens()
 		}
 	}
 
@@ -120,7 +120,7 @@ class DesktopAuthClient(
 		preferences.put(PREF_REFRESH, refreshToken)
 	}
 
-	private fun clear() {
+	fun clearTokens() {
 		preferences.remove(PREF_ACCESS)
 		preferences.remove(PREF_REFRESH)
 	}

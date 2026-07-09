@@ -12,7 +12,7 @@ package com.example.billionemotosappkt.desktop
  */
 object DesktopConfig {
     /** Valor padrao usado quando `BILLIONE_API_BASE_URL` nao esta definida. */
-    const val DEFAULT_API_BASE_URL: String = "https://fowl-lasting-goldfish.ngrok-free.app"
+    const val DEFAULT_API_BASE_URL: String = "https://engulf-blaming-scorpion.ngrok-free.dev"
 
     /** URL base efetiva da API, resolvida a partir do ambiente. */
     val apiBaseUrl: String

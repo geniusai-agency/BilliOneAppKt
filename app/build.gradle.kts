@@ -6,14 +6,13 @@ plugins {
 android {
 	namespace = "com.example.billionemotosappkt"
 	compileSdk {
-		version = release(36) {
-			minorApiLevel = 1
-		}
+		version = release(37)
 	}
 	
 	defaultConfig {
 		applicationId = "com.example.billionemotosappkt"
 		minSdk = 24
+		//noinspection OldTargetApi
 		targetSdk = 36
 		versionCode = 1
 		versionName = "1.0"
@@ -39,10 +38,9 @@ android {
 
 dependencies {
 	implementation(platform(libs.androidx.compose.bom))
-	implementation(libs.androidx.activity.compose)
-	implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences)
 	implementation(libs.androidx.compose.material3)
-	implementation("androidx.compose.material:material-icons-extended")
+	implementation(libs.androidx.compose.material.icons.extended)
 	implementation(libs.androidx.compose.ui)
 	implementation(libs.androidx.compose.ui.graphics)
 	implementation(libs.androidx.compose.ui.tooling.preview)
@@ -52,7 +50,9 @@ dependencies {
 	implementation(libs.androidx.lifecycle.viewmodel.compose)
 	implementation(libs.androidx.navigation.compose)
 	implementation(project(":shared"))
-	testImplementation(libs.junit)
+    implementation(libs.core.ktx)
+    testImplementation(libs.junit)
+	implementation(libs.androidx.activity.compose)
 	androidTestImplementation(platform(libs.androidx.compose.bom))
 	androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 	androidTestImplementation(libs.androidx.espresso.core)

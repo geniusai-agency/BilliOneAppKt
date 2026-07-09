@@ -11,6 +11,7 @@ data class ApiConfig(
     val accessTokenProvider: () -> String? = { null },
     val refreshTokenProvider: () -> String? = { null },
     val onTokenRefreshed: (accessToken: String, refreshToken: String) -> Unit = { _, _ -> },
+    val onAuthFailed: suspend () -> Unit = {},
     val defaultHeaders: Map<String, String> = mapOf("ngrok-skip-browser-warning" to "true"),
     val requestTimeoutMillis: Long = 30_000,
 )
