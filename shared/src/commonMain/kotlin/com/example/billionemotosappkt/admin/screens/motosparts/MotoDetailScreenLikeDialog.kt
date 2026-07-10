@@ -22,6 +22,10 @@ import com.example.billionemotosappkt.desktop.admin.data.MotosFilters
 import com.example.billionemotosappkt.desktop.admin.data.MotosUiState
 import com.example.billionemotosappkt.desktop.admin.model.MotoSectionTab
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import com.example.billionemotosappkt.shared.api.FotoResponse
+import com.example.billionemotosappkt.shared.utils.rememberImagePicker
+import com.example.billionemotosappkt.desktop.admin.`fun`.desktopImagePainter
+import androidx.compose.foundation.Image
 import com.example.billionemotosappkt.shared.api.ListMotosQuery
 import com.example.billionemotosappkt.shared.api.ListContratosQuery
 import com.example.billionemotosappkt.shared.api.ListManutencoesQuery
@@ -32,6 +36,7 @@ import com.example.billionemotosappkt.shared.api.ContratoResponse
 import com.example.billionemotosappkt.shared.api.UpdateMotoRequest
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.draw.clip
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -55,14 +60,37 @@ import androidx.compose.material.icons.filled.Info
 @Composable
 internal fun MotoDetailScreenLikeDialog(
 	moto: MotoResponse,
+	api: BillioneMotosApi,
+	apiBaseUrl: String,
+	apiAccessToken: String?,
 	onDismiss: () -> Unit,
 	onEdit: () -> Unit,
 ) {
 	val accent = statusAccent(moto.status)
 	val createdText = formatDate(moto.createdAt)
 	val updatedText = formatDate(moto.updatedAt)
-	val tabs = listOf("Dashboard", "Visão geral", "Manutenções", "Contratos", "Rastreador", "Histórico")
+	val tabs = listOf("Dashboard", "Visão geral", "Fotos", "Manutenções", "Contratos", "Rastreador", "Histórico")
 	var activeTab by remember(moto.id) { mutableStateOf(1) }
+	var photos by remember(moto.id) { mutableStateOf<List<FotoResponse>>(emptyList()) }
+	var isLoadingPhotos by remember(moto.id) { mutableStateOf(false) }
+	var photoError by remember(moto.id) { mutableStateOf<String?>(null) }
+	val scope = rememberCoroutineScope()
+
+	LaunchedEffect(moto.id, activeTab) {
+		if (activeTab == 2) {
+			isLoadingPhotos = true
+			runCatching {
+				api.motos.listMotoPhotos(moto.id).items
+			}.onSuccess {
+				photos = it
+				photoError = null
+			}.onFailure {
+				photoError = it.message ?: "Erro ao carregar fotos"
+			}
+			isLoadingPhotos = false
+		}
+	}
+
 	val kmAtual = moto.kmAtual
 	val manutencoesCount = moto.count?.manutencoes ?: if (moto.status == MotoStatus.MANUTENCAO) 1 else 0
 	val contratosCount = moto.count?.contratos ?: if (moto.status == MotoStatus.ALUGADA || moto.status == MotoStatus.CONTRATADA) 1 else 0
@@ -322,6 +350,130 @@ internal fun MotoDetailScreenLikeDialog(
 								modifier = Modifier.fillMaxWidth(),
 							) {
 								Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+									Row(
+										modifier = Modifier.fillMaxWidth(),
+										horizontalArrangement = Arrangement.SpaceBetween,
+										verticalAlignment = Alignment.CenterVertically
+									) {
+										Text("Fotos da Moto", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+										
+										val pickImage = rememberImagePicker { fileRequest ->
+											if (fileRequest != null) {
+												scope.launch {
+													runCatching {
+														api.motos.addMotoPhoto(moto.id, fileRequest)
+													}.onSuccess {
+														photos = api.motos.listMotoPhotos(moto.id).items
+														photoError = null
+													}.onFailure {
+														photoError = it.message ?: "Erro ao enviar foto"
+													}
+												}
+											}
+										}
+										
+										Button(
+											onClick = { pickImage() },
+											shape = RoundedCornerShape(12.dp),
+											colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20E65B), contentColor = Color.Black),
+										) {
+											Icon(Icons.Default.Image, null, modifier = Modifier.size(16.dp))
+											Spacer(Modifier.width(8.dp))
+											Text("Adicionar Foto", fontWeight = FontWeight.SemiBold)
+										}
+									}
+									
+									if (isLoadingPhotos) {
+										Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+											CircularProgressIndicator(color = Color(0xFF20E65B))
+										}
+									} else {
+										if (photoError != null) {
+											Text(photoError!!, color = Color(0xFFFF4A4A), fontSize = 13.sp)
+										}
+										
+										if (photos.isEmpty() && moto.fotoUrls.isEmpty()) {
+											Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+												Text("Nenhuma foto cadastrada para esta moto.", color = Color.White.copy(alpha = 0.4f))
+											}
+										} else {
+											Row(
+												modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
+												horizontalArrangement = Arrangement.spacedBy(14.dp)
+											) {
+												photos.forEach { photo ->
+													Box(
+														modifier = Modifier
+															.size(160.dp, 120.dp)
+															.clip(RoundedCornerShape(12.dp))
+															.border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+													) {
+														Image(
+															painter = desktopImagePainter(
+																photo.url?.takeIf { it.isNotBlank() } ?: "/arquivos/${photo.id}/render",
+																apiBaseUrl,
+																apiAccessToken
+															),
+															contentDescription = null,
+															modifier = Modifier.fillMaxSize(),
+															contentScale = androidx.compose.ui.layout.ContentScale.Crop
+														)
+														IconButton(
+															onClick = {
+																scope.launch {
+																	runCatching {
+																		api.motos.deleteMotoPhoto(moto.id, photo.id)
+																	}.onSuccess {
+																		photos = api.motos.listMotoPhotos(moto.id).items
+																		photoError = null
+																	}.onFailure {
+																		photoError = it.message ?: "Erro ao remover foto"
+																	}
+																}
+															},
+															modifier = Modifier
+																.align(Alignment.TopEnd)
+																.padding(6.dp)
+																.size(28.dp)
+																.clip(RoundedCornerShape(999.dp))
+																.background(Color.Black.copy(alpha = 0.6f))
+														) {
+															Icon(Icons.Default.Delete, null, tint = Color(0xFFFF4A4A), modifier = Modifier.size(16.dp))
+														}
+													}
+												}
+												if (photos.isEmpty() && moto.fotoUrls.isNotEmpty()) {
+													moto.fotoUrls.forEach { urlStr ->
+														Box(
+															modifier = Modifier
+																.size(160.dp, 120.dp)
+																.clip(RoundedCornerShape(12.dp))
+																.border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+														) {
+															Image(
+																painter = desktopImagePainter(urlStr, apiBaseUrl, apiAccessToken),
+																contentDescription = null,
+																modifier = Modifier.fillMaxSize(),
+																contentScale = androidx.compose.ui.layout.ContentScale.Crop
+															)
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						3 -> {
+							Card(
+								shape = RoundedCornerShape(18.dp),
+								colors = CardDefaults.cardColors(containerColor = Color(0xFF0C120E)),
+								border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+								modifier = Modifier.fillMaxWidth(),
+							) {
+								Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
 									Text("Manutenções", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
 									HistoryCard(
 										title = "OS #001",
@@ -334,7 +486,7 @@ internal fun MotoDetailScreenLikeDialog(
 							}
 						}
 
-						3 -> {
+						4 -> {
 							Card(
 								shape = RoundedCornerShape(18.dp),
 								colors = CardDefaults.cardColors(containerColor = Color(0xFF0C120E)),
@@ -358,7 +510,7 @@ internal fun MotoDetailScreenLikeDialog(
 							}
 						}
 
-						4 -> {
+						5 -> {
 							Card(
 								shape = RoundedCornerShape(18.dp),
 								colors = CardDefaults.cardColors(containerColor = Color(0xFF0C120E)),

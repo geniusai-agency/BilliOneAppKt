@@ -24,6 +24,8 @@ import com.example.billionemotosappkt.desktop.admin.`fun`.getMotoHeroImage
 import com.example.billionemotosappkt.desktop.admin.`fun`.getMotoModelCardImage
 import com.example.billionemotosappkt.desktop.admin.`fun`.resolveImageSource
 import com.example.billionemotosappkt.shared.api.MotoModeloResponse
+import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import com.example.billionemotosappkt.shared.api.ApiConfig
 
 @Composable
 fun MotoModeloPanelDialog(
@@ -38,6 +40,14 @@ fun MotoModeloPanelDialog(
 	var form by remember(model?.id, title) {
 		mutableStateOf(
 			model?.toFormState() ?: MotoModeloFormState(),
+		)
+	}
+	val api = remember(apiBaseUrl, apiAccessToken) {
+		BillioneMotosApi(
+			ApiConfig(
+				baseUrl = apiBaseUrl,
+				accessTokenProvider = { apiAccessToken },
+			),
 		)
 	}
 	val heroResource = remember(form.imagemReferenciaUrl, form.marca, form.modelo, apiBaseUrl) {
@@ -89,6 +99,8 @@ fun MotoModeloPanelDialog(
 							submitLabel = submitLabel,
 							apiBaseUrl = apiBaseUrl,
 							apiAccessToken = apiAccessToken,
+							modelId = model?.id,
+							api = api,
 						)
 					}
 				} else {
@@ -113,6 +125,8 @@ fun MotoModeloPanelDialog(
 							submitLabel = submitLabel,
 							apiBaseUrl = apiBaseUrl,
 							apiAccessToken = apiAccessToken,
+							modelId = model?.id,
+							api = api,
 							modifier = Modifier.weight(0.56f),
 						)
 					}

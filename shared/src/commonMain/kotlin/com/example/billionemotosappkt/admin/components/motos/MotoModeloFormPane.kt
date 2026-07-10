@@ -1,29 +1,31 @@
 package com.example.billionemotosappkt.desktop.admin.components.motos
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import com.example.billionemotosappkt.desktop.admin.data.MotoModeloFormState
-
+import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import com.example.billionemotosappkt.shared.api.FotoResponse
+import com.example.billionemotosappkt.shared.utils.rememberImagePicker
+import com.example.billionemotosappkt.desktop.admin.`fun`.desktopImagePainter
+import kotlinx.coroutines.launch
 
 @Composable
 fun MotoModeloFormPane(
@@ -34,6 +36,8 @@ fun MotoModeloFormPane(
 	submitLabel: String,
 	apiBaseUrl: String,
 	apiAccessToken: String?,
+	modelId: String? = null,
+	api: BillioneMotosApi? = null,
 	modifier: Modifier = Modifier,
 ) {
 	val scrollState = rememberScrollState()
@@ -245,6 +249,115 @@ fun MotoModeloFormPane(
 							minLines = 4
 						) {
 							onFormChange(form.copy(descricao = it))
+						}
+					}
+				}
+			}
+
+			if (modelId != null && api != null) {
+				var photos by remember(modelId) { mutableStateOf<List<FotoResponse>>(emptyList()) }
+				var isLoadingPhotos by remember(modelId) { mutableStateOf(false) }
+				var photoError by remember(modelId) { mutableStateOf<String?>(null) }
+				val scope = rememberCoroutineScope()
+
+				LaunchedEffect(modelId) {
+					isLoadingPhotos = true
+					runCatching {
+						api.motos.listModeloPhotos(modelId).items
+					}.onSuccess {
+						photos = it
+						photoError = null
+					}.onFailure {
+						photoError = it.message ?: "Erro ao carregar fotos"
+					}
+					isLoadingPhotos = false
+				}
+
+				MotoModeloFormSection(
+					title = "Galeria de Fotos",
+					subtitle = "Outras fotos do modelo cadastradas no sistema.",
+				) {
+					if (isLoadingPhotos) {
+						Box(modifier = Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+							CircularProgressIndicator(color = Color(0xFF20E65B))
+						}
+					} else {
+						if (photoError != null) {
+							Text(photoError!!, color = Color(0xFFFF4A4A), fontSize = 12.sp)
+						}
+
+						Row(
+							modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
+							horizontalArrangement = Arrangement.spacedBy(10.dp)
+						) {
+							photos.forEach { photo ->
+								Box(
+									modifier = Modifier
+										.size(116.dp, 88.dp)
+										.clip(RoundedCornerShape(8.dp))
+										.border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
+								) {
+									Image(
+										painter = desktopImagePainter(
+											photo.url?.takeIf { it.isNotBlank() } ?: "/arquivos/${photo.id}/render",
+											apiBaseUrl,
+											apiAccessToken
+										),
+										contentDescription = null,
+										modifier = Modifier.fillMaxSize(),
+										contentScale = androidx.compose.ui.layout.ContentScale.Crop
+									)
+									IconButton(
+										onClick = {
+											scope.launch {
+												runCatching {
+													api.motos.deleteModeloPhoto(modelId, photo.id)
+												}.onSuccess {
+													photos = api.motos.listModeloPhotos(modelId).items
+													photoError = null
+												}.onFailure {
+													photoError = it.message ?: "Erro ao remover foto"
+												}
+											}
+										},
+										modifier = Modifier
+											.align(Alignment.TopEnd)
+											.padding(4.dp)
+											.size(24.dp)
+											.clip(RoundedCornerShape(999.dp))
+											.background(Color.Black.copy(alpha = 0.6f))
+									) {
+										Icon(Icons.Default.Delete, null, tint = Color(0xFFFF4A4A), modifier = Modifier.size(14.dp))
+									}
+								}
+							}
+						}
+
+						Spacer(modifier = Modifier.height(6.dp))
+
+						val pickImage = rememberImagePicker { fileRequest ->
+							if (fileRequest != null) {
+								scope.launch {
+									runCatching {
+										api.motos.addModeloPhoto(modelId, fileRequest)
+									}.onSuccess {
+										photos = api.motos.listModeloPhotos(modelId).items
+										photoError = null
+									}.onFailure {
+										photoError = it.message ?: "Erro ao enviar foto"
+									}
+								}
+							}
+						}
+
+						Button(
+							onClick = { pickImage() },
+							shape = RoundedCornerShape(10.dp),
+							colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20E65B).copy(alpha = 0.15f), contentColor = Color(0xFF20E65B))
+						) {
+							Icon(Icons.Default.Image, null, modifier = Modifier.size(16.dp))
+							Spacer(modifier = Modifier.width(8.dp))
+							Text("Adicionar foto", fontSize = 12.sp)
 						}
 					}
 				}

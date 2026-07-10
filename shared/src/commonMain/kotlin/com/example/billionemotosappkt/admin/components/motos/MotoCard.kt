@@ -50,14 +50,14 @@ fun MotoCard(moto: MotoResponse) {
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.spacedBy(20.dp)
 		) {
-			val imageName = remember(moto.modelo) { getMotoImage(moto.modelo) }
+			val imageUrl = moto.fotoPrincipalUrl ?: moto.fotoUrls.firstOrNull() ?: getMotoImage(moto.modelo)
 			Box(
 				modifier = Modifier.size(120.dp, 90.dp).clip(RoundedCornerShape(12.dp))
 					.background(Color.Black.copy(alpha = 0.25f)),
 				contentAlignment = Alignment.Center
 			) {
 				Image(
-					painter = desktopImagePainter(imageName),
+					painter = desktopImagePainter(imageUrl),
 					contentDescription = null,
 					modifier = Modifier.fillMaxSize().padding(8.dp)
 				)

@@ -50,16 +50,12 @@ fun CustomerDashboardHeader(
 		verticalAlignment = Alignment.CenterVertically,
 	) {
 		if (showBackButton) {
-			TextButton(onClick = onBack) {
-				Row(verticalAlignment = Alignment.CenterVertically) {
-					Icon(
-						imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-						contentDescription = "Voltar",
-						tint = MaterialTheme.colorScheme.onSurface,
-					)
-					Spacer(modifier = Modifier.size(4.dp))
-					Text("Voltar", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-				}
+			IconButton(onClick = onBack) {
+				Icon(
+					imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+					contentDescription = "Voltar",
+					tint = MaterialTheme.colorScheme.onSurface,
+				)
 			}
 			Spacer(modifier = Modifier.size(4.dp))
 		}

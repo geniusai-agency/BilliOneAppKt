@@ -269,6 +269,9 @@ fun MotosSection(
 		viewingMoto?.let { moto ->
 			MotoDetailScreenLikeDialog(
 				moto = moto,
+				api = api,
+				apiBaseUrl = apiBaseUrl,
+				apiAccessToken = apiAccessToken,
 				onDismiss = {
 					viewingMoto = null
 				},

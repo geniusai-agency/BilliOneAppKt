@@ -127,7 +127,6 @@ private fun SupportMenu(
 		modifier = modifier.fillMaxWidth(),
 		verticalArrangement = Arrangement.spacedBy(14.dp),
 	) {
-		SupportBackButton(onBack = onBack)
 		SupportMenuHeader()
 
 		Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -213,8 +212,6 @@ private fun SupportChat(
 				}
 			},
 		)
-
-		SupportBackButton(onBack = onBack)
 	}
 }
 
@@ -238,7 +235,6 @@ private fun SupportFaq(
 				)
 			},
 		)
-		SupportBackButton(onBack = onBack)
 	}
 }
 
@@ -266,7 +262,6 @@ private fun SupportContact(
 				)
 			},
 		)
-		SupportBackButton(onBack = onDismiss)
 	}
 }
 
@@ -408,19 +403,6 @@ private fun ChatBubble(message: CustomerChatMessage) {
 				color = MaterialTheme.colorScheme.onSurface,
 			)
 		}
-	}
-}
-
-@Composable
-private fun SupportBackButton(onBack: () -> Unit) {
-	Button(
-		onClick = onBack,
-		colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)),
-		modifier = Modifier.fillMaxWidth(),
-	) {
-		Icon(imageVector = AutoMirrored.Filled.ArrowBack, contentDescription = null)
-		Spacer(modifier = Modifier.size(8.dp))
-		Text(text = "Voltar", fontWeight = FontWeight.Black)
 	}
 }
 

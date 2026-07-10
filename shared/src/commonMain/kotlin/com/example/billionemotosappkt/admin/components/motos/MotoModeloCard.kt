@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,57 +58,60 @@ fun MotoModeloCard(
 	modifier: Modifier = Modifier,
 ) {
 	var menuOpen by remember { mutableStateOf(false) }
-	val imageResource = remember(model.imagemReferenciaUrl, model.marca, model.modelo, apiBaseUrl) {
-		resolveImageSource(model.imagemReferenciaUrl, apiBaseUrl).ifBlank {
+	val imageResource = remember(model.imagemReferenciaUrl, model.fotoUrls, model.marca, model.modelo, apiBaseUrl) {
+		val primaryUrl = model.imagemReferenciaUrl ?: model.fotoUrls.firstOrNull() ?: ""
+		resolveImageSource(primaryUrl, apiBaseUrl).ifBlank {
 			getMotoModelCardImage(model.marca, model.modelo)
 		}
 	}
 
 	Card(
 		modifier = modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(24.dp),
-		colors = CardDefaults.cardColors(containerColor = Color(0xFF0C120E)),
-		border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+		shape = RoundedCornerShape(18.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0B100D)),
+		border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
 	) {
-		Row(
+		Box(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(20.dp),
-			horizontalArrangement = Arrangement.spacedBy(20.dp),
-			verticalAlignment = Alignment.CenterVertically,
+				.heightIn(min = 168.dp),
 		) {
-			Box(
+			Row(
 				modifier = Modifier
-					.size(180.dp, 130.dp)
-					.clip(RoundedCornerShape(18.dp))
-					.background(
-						Brush.verticalGradient(
-							listOf(
-								Color(0xFF141D19),
-								Color(0xFF080D0A),
+					.fillMaxWidth()
+					.padding(18.dp),
+				horizontalArrangement = Arrangement.spacedBy(18.dp),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Box(
+					modifier = Modifier
+						.size(178.dp, 124.dp)
+						.clip(RoundedCornerShape(14.dp))
+						.background(
+							Brush.radialGradient(
+								listOf(
+									Color(0xFF203028),
+									Color(0xFF101813),
+									Color(0xFF080D0A),
+								),
 							),
-						),
-					)
-					.border(1.dp, Color.White.copy(alpha = 0.04f), RoundedCornerShape(18.dp)),
-				contentAlignment = Alignment.Center,
-			) {
-				Image(
-					painter = desktopImagePainter(imageResource, apiBaseUrl, apiAccessToken),
-					contentDescription = null,
-					modifier = Modifier.fillMaxSize().padding(12.dp),
-				)
-			}
-
-			Column(
-				modifier = Modifier.weight(1f),
-				verticalArrangement = Arrangement.spacedBy(12.dp),
-			) {
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.SpaceBetween,
-					verticalAlignment = Alignment.Top,
+						)
+						.border(1.dp, Color.White.copy(alpha = 0.07f), RoundedCornerShape(14.dp)),
+					contentAlignment = Alignment.Center,
 				) {
-					Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+					Image(
+						painter = desktopImagePainter(imageResource, apiBaseUrl, apiAccessToken),
+						contentDescription = null,
+						contentScale = ContentScale.Fit,
+						modifier = Modifier.fillMaxSize().padding(8.dp),
+					)
+				}
+
+				Column(
+					modifier = Modifier.weight(1f),
+					verticalArrangement = Arrangement.spacedBy(12.dp),
+				) {
+					Column(modifier = Modifier.fillMaxWidth().padding(end = 8.dp)) {
 						Text(
 							text = listOfNotNull(
 								model.marca?.takeIf { it.isNotBlank() },
@@ -131,68 +136,80 @@ fun MotoModeloCard(
 						)
 					}
 
-					Box {
-						IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(32.dp)) {
-							Icon(Icons.Default.MoreVert, null, tint = Color.White.copy(0.4f))
-						}
-						DropdownMenu(
-							expanded = menuOpen,
-							onDismissRequest = { menuOpen = false },
-							modifier = Modifier.background(Color(0xFF0E1411)),
-						) {
-							DropdownMenuItem(text = { Text("Ver detalhes") }, onClick = { menuOpen = false; onView() })
-							DropdownMenuItem(text = { Text("Editar") }, onClick = { menuOpen = false; onEdit() })
-							DropdownMenuItem(text = { Text("Desativar", color = Color(0xFFFF4A4A)) }, onClick = { menuOpen = false; onDelete() })
-						}
+					Row(
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						MotoModeloSmallTag(text = model.categoria?.takeIf { it.isNotBlank() } ?: "Categoria", tint = Color(0xFF7DD3FC))
+						MotoModeloSmallTag(text = model.tipo?.takeIf { it.isNotBlank() } ?: "Uso urbano", tint = Color(0xFFFFB300))
+						MotoModeloSmallTag(text = model.combustivel?.takeIf { it.isNotBlank() } ?: "Combustivel", tint = Color(0xFF20E65B))
+					}
+
+					Row(
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						TechnicalTag(text = model.cilindrada?.let { "${it}cc" } ?: "160cc")
+						TechnicalTag(text = model.ano?.toString() ?: "2026")
+						TechnicalTag(text = model.id?.take(6) ?: "BLN-E")
 					}
 				}
 
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
-					verticalAlignment = Alignment.CenterVertically,
+				Column(
+					horizontalAlignment = Alignment.End,
+					verticalArrangement = Arrangement.Center,
+					modifier = Modifier.widthIn(min = 132.dp, max = 180.dp),
 				) {
-					MotoModeloSmallTag(text = model.categoria ?: "Trail", tint = Color(0xFF7DD3FC))
-					MotoModeloSmallTag(text = model.tipo ?: "Urbana", tint = Color(0xFFFFB300))
-					MotoModeloSmallTag(text = model.combustivel ?: "Gasolina", tint = Color(0xFF20E65B))
-				}
-
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					TechnicalTag(text = model.cilindrada?.let { "${it}cc" } ?: "160cc")
-					TechnicalTag(text = model.ano?.toString() ?: "2026")
-					TechnicalTag(text = model.id?.take(6) ?: "BLN-E")
+					Text(
+						text = model.marca?.uppercase() ?: "AVELOZ",
+						color = Color(0xFF20E65B),
+						fontSize = 11.sp,
+						fontWeight = FontWeight.Bold,
+						letterSpacing = 1.sp,
+					)
+					Spacer(Modifier.height(4.dp))
+					Text(
+						text = model.precoInicial.toPriceLabel(),
+						color = Color.White,
+						fontSize = 18.sp,
+						fontWeight = FontWeight.Black,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
+					Text(
+						text = "valor inicial",
+						color = Color.White.copy(alpha = 0.3f),
+						fontSize = 10.sp,
+					)
 				}
 			}
 
-			Column(
-				horizontalAlignment = Alignment.End,
-				verticalArrangement = Arrangement.Center,
-				modifier = Modifier.widthIn(min = 120.dp),
+			Box(
+				modifier = Modifier
+					.align(Alignment.TopEnd)
+					.padding(top = 12.dp, end = 12.dp),
 			) {
-				Text(
-					text = model.marca?.uppercase() ?: "AVELOZ",
-					color = Color(0xFF20E65B),
-					fontSize = 11.sp,
-					fontWeight = FontWeight.Bold,
-					letterSpacing = 1.sp,
-				)
-				Spacer(Modifier.height(4.dp))
-				Text(
-					text = "R$ ${model.precoInicial ?: "0.000,00"}",
-					color = Color.White,
-					fontSize = 18.sp,
-					fontWeight = FontWeight.Black,
-				)
-				Text(
-					text = "Acoes no menu",
-					color = Color.White.copy(alpha = 0.3f),
-					fontSize = 10.sp,
-				)
+				IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(32.dp)) {
+					Icon(Icons.Default.MoreVert, null, tint = Color.White.copy(0.42f))
+				}
+				DropdownMenu(
+					expanded = menuOpen,
+					onDismissRequest = { menuOpen = false },
+					modifier = Modifier.background(Color(0xFF0E1411)),
+				) {
+					DropdownMenuItem(text = { Text("Ver detalhes") }, onClick = { menuOpen = false; onView() })
+					DropdownMenuItem(text = { Text("Editar") }, onClick = { menuOpen = false; onEdit() })
+					DropdownMenuItem(text = { Text("Desativar", color = Color(0xFFFF4A4A)) }, onClick = { menuOpen = false; onDelete() })
+				}
 			}
 		}
 	}
+}
+
+private fun String?.toPriceLabel(): String {
+	val value = this?.trim().orEmpty()
+	if (value.isBlank()) return "R$ 0,00"
+	return if (value.startsWith("R$", ignoreCase = true)) value else "R$ $value"
 }
 
 @Composable

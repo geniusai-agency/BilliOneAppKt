@@ -1,9 +1,14 @@
 package com.example.billionemotosappkt.desktop.admin.`fun`
 
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -20,11 +25,13 @@ import com.example.billionemotosappkt.desktop.api.TicketStatus
 import com.example.billionemotosappkt.shared.api.MotoModeloResponse
 import com.example.billionemotosappkt.shared.api.UploadFileRequest
 import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import com.example.billionemotosappkt.shared.api.ApiConfig
 import com.example.billionemotosappkt.shared.utils.toImageBitmap
 import com.example.billionemotosappkt.shared.utils.openUri
 import com.example.billionemotosappkt.shared.utils.rememberAssetPainter
 import com.example.billionemotosappkt.shared.utils.getDaysUntil
 import com.example.billionemotosappkt.shared.utils.getHourOfDay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 fun percentage(value: Int, total: Int): Int {
@@ -121,17 +128,24 @@ fun desktopImagePainter(
 	return when {
 		resolved.isBlank() -> fallbackMotoPainter()
 		resolved.startsWith("http://") || resolved.startsWith("https://") -> {
+			var hasError by remember(resolved) { mutableStateOf(false) }
 			val bitmap = remember(resolved) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
 			LaunchedEffect(resolved) {
+				hasError = false
 				runCatching {
 					val bytes = api.fetchRawBytes(resolved)
 					bytes.toImageBitmap()
 				}.onSuccess {
 					bitmap.value = it
+				}.onFailure {
+					hasError = true
 				}
 			}
-			val current = bitmap.value
-			if (current != null) BitmapPainter(current) else fallbackMotoPainter()
+			when {
+				hasError -> androidx.compose.ui.graphics.vector.rememberVectorPainter(androidx.compose.material.icons.Icons.Default.BrokenImage)
+				bitmap.value != null -> androidx.compose.ui.graphics.painter.BitmapPainter(bitmap.value!!)
+				else -> fallbackMotoPainter()
+			}
 		}
 		else -> rememberAssetPainter(resolved)
 	}
@@ -144,7 +158,47 @@ fun desktopImagePainter(
 	apiBaseUrl: String? = null,
 	apiAccessToken: String? = null
 ): Painter {
-	return rememberAssetPainter(resourceName)
+	val resolved = resolveImageSource(resourceName, apiBaseUrl)
+	return when {
+		resolved.isBlank() -> fallbackMotoPainter()
+		resolved.startsWith("http://", ignoreCase = true) ||
+			resolved.startsWith("https://", ignoreCase = true) -> {
+			val scope = rememberCoroutineScope()
+			val api = remember(apiBaseUrl, apiAccessToken) {
+				BillioneMotosApi(
+					ApiConfig(
+						baseUrl = apiBaseUrl?.takeIf { it.isNotBlank() } ?: resolved,
+						accessTokenProvider = { apiAccessToken },
+					),
+				)
+			}
+			DisposableEffect(api) {
+				onDispose {
+					scope.launch {
+						runCatching { api.close() }
+					}
+				}
+			}
+			var hasError by remember(resolved) { mutableStateOf(false) }
+			val bitmap = remember(resolved) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+			LaunchedEffect(resolved, apiAccessToken) {
+				hasError = false
+				runCatching {
+					api.fetchRawBytes(resolved).toImageBitmap()
+				}.onSuccess {
+					bitmap.value = it
+				}.onFailure {
+					hasError = true
+				}
+			}
+			when {
+				hasError -> androidx.compose.ui.graphics.vector.rememberVectorPainter(androidx.compose.material.icons.Icons.Default.BrokenImage)
+				bitmap.value != null -> androidx.compose.ui.graphics.painter.BitmapPainter(bitmap.value!!)
+				else -> fallbackMotoPainter()
+			}
+		}
+		else -> rememberAssetPainter(resolved)
+	}
 }
 
 fun greeting(): String = when (getHourOfDay()) {

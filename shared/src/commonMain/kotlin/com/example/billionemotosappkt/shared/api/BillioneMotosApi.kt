@@ -559,6 +559,33 @@ class BillioneMotosApi(
         suspend fun activateModelo(id: String): MotoModeloResponse =
             call(HttpMethod.Patch, "/modelos-moto/$id/ativar")
 
+        suspend fun listModeloPhotos(id: String): PagedResponse<FotoResponse> =
+            call(HttpMethod.Get, "/modelos-moto/$id/arquivos")
+
+        suspend fun addModeloPhoto(
+            id: String,
+            file: UploadFileRequest,
+            descricao: String? = null,
+        ): FotoResponse =
+            multipartCall(HttpMethod.Post, "/modelos-moto/$id/arquivos") {
+                appendFile("file", file)
+                appendText("descricao", descricao)
+            }
+
+        suspend fun updateModeloPhoto(
+            id: String,
+            fotoId: String,
+            file: UploadFileRequest? = null,
+            descricao: String? = null,
+        ): FotoResponse =
+            multipartCall(HttpMethod.Patch, "/modelos-moto/$id/arquivos/$fotoId") {
+                file?.let { appendFile("file", it) }
+                appendText("descricao", descricao)
+            }
+
+        suspend fun deleteModeloPhoto(id: String, fotoId: String): FotoResponse =
+            call(HttpMethod.Delete, "/modelos-moto/$id/arquivos/$fotoId")
+
         suspend fun get(id: String): MotoResponse =
             call(HttpMethod.Get, "/motos/$id")
 
@@ -567,6 +594,33 @@ class BillioneMotosApi(
 
         suspend fun delete(id: String): MotoResponse =
             call(HttpMethod.Delete, "/motos/$id")
+
+        suspend fun listMotoPhotos(id: String): PagedResponse<FotoResponse> =
+            call(HttpMethod.Get, "/motos/$id/arquivos")
+
+        suspend fun addMotoPhoto(
+            id: String,
+            file: UploadFileRequest,
+            descricao: String? = null,
+        ): FotoResponse =
+            multipartCall(HttpMethod.Post, "/motos/$id/arquivos") {
+                appendFile("file", file)
+                appendText("descricao", descricao)
+            }
+
+        suspend fun updateMotoPhoto(
+            id: String,
+            fotoId: String,
+            file: UploadFileRequest? = null,
+            descricao: String? = null,
+        ): FotoResponse =
+            multipartCall(HttpMethod.Patch, "/motos/$id/arquivos/$fotoId") {
+                file?.let { appendFile("file", it) }
+                appendText("descricao", descricao)
+            }
+
+        suspend fun deleteMotoPhoto(id: String, fotoId: String): FotoResponse =
+            call(HttpMethod.Delete, "/motos/$id/arquivos/$fotoId")
     }
 
     inner class ContratosEndpoints {

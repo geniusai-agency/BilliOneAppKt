@@ -207,7 +207,6 @@ private fun TicketsListView(
 				}
 			},
 		)
-		SupportBackButtonTickets(onBack = onBack)
 	}
 }
 
@@ -423,7 +422,6 @@ private fun TicketCreateView(
 				}
 			},
 		)
-		SupportBackButtonTickets(onBack = onBack)
 	}
 }
 
@@ -594,7 +592,6 @@ private fun TicketDetailView(
 				)
 			}
 		}
-		SupportBackButtonTickets(onBack = onBack)
 	}
 }
 
@@ -683,7 +680,6 @@ private fun TicketEditView(
 				}
 			},
 		)
-		SupportBackButtonTickets(onBack = onBack)
 	}
 }
 
@@ -785,18 +781,7 @@ private fun ErrorRow(message: String, onRetry: () -> Unit) {
 	}
 }
 
-@Composable
-private fun SupportBackButtonTickets(onBack: () -> Unit) {
-	Button(
-		onClick = onBack,
-		colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f)),
-		modifier = Modifier.fillMaxWidth(),
-	) {
-		Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-		Spacer(modifier = Modifier.size(8.dp))
-		Text(text = "Voltar", fontWeight = FontWeight.Black)
-	}
-}
+
 
 // ---------------------------------------------------------------------------
 // Labels / formatting (pt-BR, ASCII to match neighboring files)

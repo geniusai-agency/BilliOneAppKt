@@ -20,6 +20,7 @@ import com.example.billionemotosappkt.shared.api.BillioneMotosApi
 import com.example.billionemotosappkt.shared.api.MotoModeloResponse
 import com.example.billionemotosappkt.shared.api.MotoStatus
 import kotlinx.coroutines.launch
+import com.example.billionemotosappkt.desktop.admin.data.*
 
 @Composable
 fun MotoModelosSection(api: BillioneMotosApi, apiBaseUrl: String, apiAccessToken: String?) {
@@ -190,7 +191,19 @@ fun MotoModelosSection(api: BillioneMotosApi, apiBaseUrl: String, apiAccessToken
 			model = null,
 			onDismiss = { creatingModel = false },
 			onSubmit = { form -> 
-				creatingModel = false 
+				scope.launch {
+					runCatching {
+						api.motos.createModelo(
+							request = form.toCreateRequest(),
+							imagemReferenciaImage = form.toImageUpload()
+						)
+					}.onSuccess {
+						creatingModel = false
+						api.motos.modelos().let { models = it }
+					}.onFailure {
+						errorMessage = it.message ?: "Erro ao criar modelo"
+					}
+				}
 			},
 			submitLabel = "Cadastrar Modelo",
 			apiBaseUrl = apiBaseUrl,
@@ -204,11 +217,73 @@ fun MotoModelosSection(api: BillioneMotosApi, apiBaseUrl: String, apiAccessToken
 			model = editingModel,
 			onDismiss = { editingModel = null },
 			onSubmit = { form -> 
-				editingModel = null 
+				scope.launch {
+					val modelId = editingModel?.id
+					if (modelId != null) {
+						runCatching {
+							api.motos.updateModelo(
+								id = modelId,
+								request = form.toUpdateRequest(),
+								imagemReferenciaImage = form.toImageUpload()
+							)
+						}.onSuccess {
+							editingModel = null
+							api.motos.modelos().let { models = it }
+						}.onFailure {
+							errorMessage = it.message ?: "Erro ao editar modelo"
+						}
+					}
+				}
 			},
 			submitLabel = "Salvar Alterações",
 			apiBaseUrl = apiBaseUrl,
 			apiAccessToken = apiAccessToken,
+		)
+	}
+
+	if (selectedModel != null) {
+		com.example.billionemotosappkt.desktop.admin.components.motos.MotoModeloPanelDialog(
+			title = "Detalhes do Modelo",
+			model = selectedModel,
+			onDismiss = { selectedModel = null },
+			onSubmit = null,
+			submitLabel = "",
+			apiBaseUrl = apiBaseUrl,
+			apiAccessToken = apiAccessToken,
+		)
+	}
+
+	if (deletingModel != null) {
+		AlertDialog(
+			onDismissRequest = { deletingModel = null },
+			title = { Text("Desativar Modelo", color = Color.White) },
+			text = { Text("Tem certeza que deseja desativar o modelo ${deletingModel?.nome}? Ele deixará de ser exibido no catálogo.", color = Color.White.copy(0.6f)) },
+			confirmButton = {
+				Button(
+					onClick = {
+						scope.launch {
+							runCatching {
+								deletingModel?.id?.let { api.motos.deleteModelo(it) }
+							}.onSuccess {
+								deletingModel = null
+								api.motos.modelos().let { models = it }
+							}.onFailure {
+								errorMessage = it.message ?: "Erro ao desativar modelo"
+							}
+						}
+					},
+					colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4A4A), contentColor = Color.White)
+				) {
+					Text("Desativar")
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { deletingModel = null }) {
+					Text("Cancelar")
+				}
+			},
+			containerColor = Color(0xFF0C120E),
+			shape = RoundedCornerShape(16.dp)
 		)
 	}
 }

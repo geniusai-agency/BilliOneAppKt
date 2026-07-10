@@ -37,16 +37,7 @@ fun CustomerContractTab(
 		modifier = modifier,
 		verticalArrangement = Arrangement.spacedBy(14.dp),
 	) {
-		Button(
-			onClick = onBack,
-			colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f), contentColor = MaterialTheme.colorScheme.onSurface),
-			modifier = Modifier.fillMaxWidth(),
-			shape = RoundedCornerShape(16.dp),
-		) {
-			Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-			Spacer(modifier = Modifier.size(8.dp))
-			Text(text = "Voltar", fontWeight = FontWeight.Black)
-		}
+
 
 		CustomerContractHeaderCard(contract = selectedContract)
 		CustomerSectionHeader(title = "Documentos")
