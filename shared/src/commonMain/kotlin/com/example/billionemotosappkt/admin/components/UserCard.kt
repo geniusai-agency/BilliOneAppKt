@@ -21,10 +21,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import com.example.billionemotosappkt.shared.api.AppRole
 
 @Composable
-fun UserCard(authState: AuthUiState) {
+fun UserCard(authState: AuthUiState?) {
+    UserCardContent(
+        userName = authState?.userName,
+        userEmail = authState?.userEmail,
+        roles = authState?.roles ?: emptyList(),
+        isAdmin = authState?.isAdmin ?: false,
+    )
+}
+
+@Composable
+fun UserCard(authState: com.example.billionemotosappkt.screens.auth.AuthUiState) {
+    UserCardContent(
+        userName = authState.userName,
+        userEmail = authState.userEmail,
+        roles = authState.roles,
+        isAdmin = authState.isAdmin,
+    )
+}
+
+@Composable
+private fun UserCardContent(
+    userName: String?,
+    userEmail: String?,
+    roles: List<AppRole>,
+    isAdmin: Boolean,
+) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -37,18 +62,18 @@ fun UserCard(authState: AuthUiState) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AvatarCircle(
-                    label = initials(authState.userName ?: authState.userEmail ?: "AD"),
+                    label = initials(userName ?: userEmail ?: "AD"),
                     size = 52.dp,
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = authState.userName ?: "Administrador",
+                        text = userName ?: "Administrador",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = authState.userEmail ?: "Conta interna",
+                        text = userEmail ?: "Conta interna",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -59,9 +84,18 @@ fun UserCard(authState: AuthUiState) {
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
+            val roleLabel = when {
+                roles.contains(AppRole.ADMIN) -> "Administrador"
+                roles.contains(AppRole.FINANCEIRO) -> "Financeiro"
+                roles.contains(AppRole.MECANICO) -> "Mecânico"
+                roles.contains(AppRole.OFICINA) -> "Oficina"
+                roles.contains(AppRole.CLIENTE) -> "Cliente (Sem acesso admin)"
+                else -> if (isAdmin) "Administrador" else "Operação"
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Pill(
-                    text = if (authState.isAdmin) "Administrador" else "Operacao",
+                    text = roleLabel,
                     icon = Icons.Default.SupportAgent,
                     containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                     contentColor = MaterialTheme.colorScheme.primary,

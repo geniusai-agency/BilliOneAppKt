@@ -77,17 +77,17 @@ fun CustomerDashboardContent(
 			CustomerDashboardHeader(
 				userName = authState.userName ?: "Cliente Billione",
 				userEmail = authState.userEmail,
-				showBackButton = activeTab != CustomerDashboardTab.RESUMO || supportView != CustomerSupportView.MENU,
+				showBackButton = supportView != CustomerSupportView.MENU,
 				onBack = onBack,
 				onEditProfile = onEditProfile,
 				onLogout = onLogout,
 			)
 		},
 		bottomBar = {
-//			CustomerDashboardBottomNav(
-//				activeTab = activeTab,
-//				onTabChange = onTabChange,
-//			)
+			CustomerDashboardBottomNav(
+				activeTab = activeTab,
+				onTabChange = onTabChange,
+			)
 		},
 	) { innerPadding ->
 		Box(
@@ -109,26 +109,41 @@ fun CustomerDashboardContent(
 					.verticalScroll(scrollState)
 					.padding(horizontal = 16.dp, vertical = 8.dp),
 			) {
-				CustomerJourneyBanner(
-					authState = authState,
-					onPrimaryAction = onRequestAnalysis,
-				)
+				if (dashboardData.contracts.isNotEmpty()) {
+					CustomerJourneyBanner(
+						authState = authState,
+						onPrimaryAction = onRequestAnalysis,
+					)
+				}
 				
 				when (activeTab) {
-					CustomerDashboardTab.RESUMO -> CustomerDashboardHomeTab(
-						contract = selectedContract,
-						data = dashboardData,
-						activeTab = activeTab,
-						onTabChange = onTabChange,
-						openCount = dashboardData.payments.count { it.status != com.example.billionemotosappkt.screens.dashboard.customer.CustomerPaymentStatus.PAID },
-						paidCount = dashboardData.payments.count { it.status == com.example.billionemotosappkt.screens.dashboard.customer.CustomerPaymentStatus.PAID },
-						onActionClick = { tab ->
-							if (tab != null) onTabChange(tab)
-						},
-					)
+					CustomerDashboardTab.RESUMO -> {
+						if (dashboardData.contracts.isEmpty()) {
+							CustomerNoContractScreen(
+								authState = authState,
+								dashboardData = dashboardData,
+								onPrimaryAction = onRequestAnalysis,
+								onPlanosClick = onPlanosClick,
+								onSupportClick = { onTabChange(CustomerDashboardTab.SUPORTE) }
+							)
+						} else {
+							CustomerDashboardHomeTab(
+								contract = selectedContract,
+								data = dashboardData,
+								activeTab = activeTab,
+								onTabChange = onTabChange,
+								openCount = dashboardData.payments.count { it.status != com.example.billionemotosappkt.screens.dashboard.customer.CustomerPaymentStatus.PAID },
+								paidCount = dashboardData.payments.count { it.status == com.example.billionemotosappkt.screens.dashboard.customer.CustomerPaymentStatus.PAID },
+								onActionClick = { tab ->
+									if (tab != null) onTabChange(tab)
+								},
+							)
+						}
+					}
 					
 					CustomerDashboardTab.PAGAMENTOS -> CustomerPaymentsTab(
 						payments = dashboardData.payments,
+						contractCount = dashboardData.contracts.size,
 						onBack = { onTabChange(CustomerDashboardTab.RESUMO) }
 					)
 					CustomerDashboardTab.CONTRATO -> CustomerContractTab(

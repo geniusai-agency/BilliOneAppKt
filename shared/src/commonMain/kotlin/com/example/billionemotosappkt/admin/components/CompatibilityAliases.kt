@@ -1,6 +1,7 @@
 package com.example.billionemotosappkt.desktop.admin.components
 
 import com.example.billionemotosappkt.shared.api.AuthenticationContextResponse
+import com.example.billionemotosappkt.shared.api.AppRole
 import com.example.billionemotosappkt.shared.api.UserKind
 import com.example.billionemotosappkt.desktop.admin.model.AdminDashboardSnapshot
 
@@ -15,3 +16,6 @@ val AuthenticationContextResponse.userEmail: String
 
 val AuthenticationContextResponse.isAdmin: Boolean
     get() = user.kind == UserKind.INTERNAL
+
+val AuthenticationContextResponse.roles: List<AppRole>
+    get() = journey.roles.ifEmpty { user.roles.map { it.role } }

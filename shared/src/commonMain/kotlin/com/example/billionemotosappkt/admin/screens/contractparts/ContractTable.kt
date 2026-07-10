@@ -623,16 +623,15 @@ internal fun ContractPreviewDialog(
     var error by remember(contrato.id) { mutableStateOf<String?>(null) }
     var summary by remember(contrato.id) { mutableStateOf<com.example.billionemotosappkt.desktop.admin.clientes.components.DocumentPreviewSummary?>(null) }
 
-    LaunchedEffect(contrato.pdfUrl) {
+    val effectiveUrl = contrato.pdfUrl?.ifBlank { null } ?: "/contratos/${contrato.id}/pdf"
+
+    LaunchedEffect(effectiveUrl) {
         loading = true
         error = null
         summary = null
         summary = runCatching {
-            api.loadDocumentPreviewSummary(contrato.pdfUrl)
+            api.loadDocumentPreviewSummary(effectiveUrl)
         }.getOrNull()
-        if (contrato.pdfUrl.isNullOrBlank()) {
-            error = "Contrato sem PDF para visualizacao."
-        }
         loading = false
     }
 
@@ -640,12 +639,12 @@ internal fun ContractPreviewDialog(
         api = api,
         title = contrato.cliente?.nome ?: "Contrato",
         subtitle = "${contrato.planoSnapshotNome} • ${motoLabel(contrato)}",
-        url = contrato.pdfUrl,
+        url = effectiveUrl,
         summary = summary,
         loading = loading,
         error = error,
         onDismiss = onDismiss,
-        onOpenExternally = { openDocumentExternally(api, contrato.pdfUrl) },
+        onOpenExternally = { openDocumentExternally(api, effectiveUrl) },
     )
 }
 

@@ -21,10 +21,52 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+@Composable
+fun AdminSidebar(
+    authState: AuthUiState?,
+    overview: DashboardOverviewData,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxHeight(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            BrandBlock()
+            UserCard(authState = authState)
+            SidebarQuickMetrics(overview = overview)
+            SidebarActions()
+            SidebarAttention(overview = overview)
+            Spacer(modifier = Modifier.weight(1f))
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = null,
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = "Sair do painel")
+            }
+        }
+    }
+}
 
 @Composable
 fun AdminSidebar(
-    authState: AuthUiState,
+    authState: com.example.billionemotosappkt.screens.auth.AuthUiState,
     overview: DashboardOverviewData,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,

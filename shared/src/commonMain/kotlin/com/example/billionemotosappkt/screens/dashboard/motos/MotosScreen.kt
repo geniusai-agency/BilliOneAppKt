@@ -28,8 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +49,8 @@ import com.example.billionemotosappkt.components.motos.MotoDetailsCard
 import com.example.billionemotosappkt.components.motos.MotoFeatureCard
 import com.example.billionemotosappkt.components.motos.MotoHeroCard
 import com.example.billionemotosappkt.components.motos.MotoVariant
+import com.example.billionemotosappkt.shared.api.BillioneMotosApi
+import com.example.billionemotosappkt.shared.api.MotoModeloResponse
 import com.example.billionemotosappkt.ui.theme.AppDimens
 
 @Composable
@@ -55,87 +59,187 @@ fun MotosScreen(
 	onPlanosClick: () -> Unit = {},
 	onOndeEstamosClick: () -> Unit = {},
 	onRentClick: () -> Unit = {},
+	api: BillioneMotosApi? = null,
 	modifier: Modifier = Modifier,
 ) {
-	val variants = remember {
-		listOf(
-			MotoVariant(
-				title = "Sport",
-				subtitle = "A mais agressiva da linha",
-				imageRes = "moto_sport_updated.png",
-				monthlyPrice = "R$ 660",
-				consumption = "45-65 km/L",
-				details = listOf(
-					"Freio" to "Tambor",
-					"Partida" to "Pedal / Elétrica",
-					"Tanque" to "10L",
-					"Rodas" to "Liga leve",
+	var fetchedModelos by remember { mutableStateOf<List<MotoModeloResponse>>(emptyList()) }
+	
+	LaunchedEffect(api) {
+		if (api != null) {
+			runCatching {
+				api.motos.modelos()
+			}.onSuccess { modelos ->
+				if (modelos.isNotEmpty()) {
+					fetchedModelos = modelos
+				}
+			}
+		}
+	}
+
+	val variants = remember(fetchedModelos) {
+		if (fetchedModelos.isNotEmpty()) {
+			fetchedModelos.map { modelo ->
+				val nomeCompleto = "${modelo.marca ?: "Honda"} ${modelo.nome ?: "Moto"}"
+				val imageResName = resolveImageResForModelo(modelo)
+
+				MotoVariant(
+					title = modelo.nome ?: "Modelo",
+					subtitle = "${modelo.marca ?: "Honda"} • ${modelo.cilindrada ?: 160}cc ${modelo.combustivel?.let { "• $it" } ?: ""}",
+					imageRes = imageResName,
+					monthlyPrice = modelo.precoInicial?.let { if (it.startsWith("R$")) it else "R$ $it" } ?: "R$ 649,00",
+					consumption = when (modelo.cilindrada ?: 160) {
+						in 0..125 -> "48-68 km/L"
+						in 126..190 -> "42-55 km/L"
+						else -> "28-40 km/L"
+					},
+					details = listOf(
+						"Marca" to (modelo.marca ?: "Honda"),
+						"Cilindrada" to "${modelo.cilindrada ?: 160} cc",
+						"Combustível" to (modelo.combustivel ?: "Flex"),
+						"Categoria" to (modelo.categoria ?: "Urbana"),
+					),
+					specs = listOf(
+						"Modelo" to nomeCompleto,
+						"Ano" to (modelo.ano?.toString() ?: "2026"),
+						"Descrição" to (modelo.descricao?.take(60) ?: "Moto cadastrada na plataforma"),
+					),
+				)
+			}
+		} else {
+			// Fallback com as 7 motos cadastradas no banco de dados da seed
+			listOf(
+				MotoVariant(
+					title = "Pop 110i ES",
+					subtitle = "Honda • 109cc • Economia máxima",
+					imageRes = "moto_sport.png",
+					monthlyPrice = "R$ 149/semana",
+					consumption = "48-68 km/L",
+					details = listOf(
+						"Freio" to "CBS",
+						"Partida" to "Elétrica",
+						"Tanque" to "4.2L",
+						"Rodas" to "Aço",
+					),
+					specs = listOf(
+						"Motor" to "109cc OHC",
+						"Combustível" to "Gasolina",
+						"Ano" to "2026",
+					),
 				),
-				specs = listOf(
-					"Motor" to "160cc",
-					"Cor" to "Preto",
-					"Velocidade" to "Alta resposta",
+				MotoVariant(
+					title = "Biz 125 EX",
+					subtitle = "Honda • 124cc • Conforto urbano",
+					imageRes = "moto_eletrica_new.png",
+					monthlyPrice = "R$ 165/semana",
+					consumption = "45-62 km/L",
+					details = listOf(
+						"Freio" to "Disco",
+						"Partida" to "Elétrica",
+						"Tanque" to "5.1L",
+						"Rodas" to "Liga leve",
+					),
+					specs = listOf(
+						"Motor" to "124cc OHC",
+						"Combustível" to "Flex",
+						"Ano" to "2026",
+					),
 				),
-			),
-			MotoVariant(
-				title = "Sport ESD",
-				subtitle = "Visual esportivo e urbano",
-				imageRes = "avelloz_160_black_new.png",
-				monthlyPrice = "R$ 620",
-				consumption = "48-67 km/L",
-				details = listOf(
-					"Freio" to "Disco",
-					"Partida" to "Elétrica",
-					"Tanque" to "10L",
-					"Rodas" to "Liga leve",
+				MotoVariant(
+					title = "CG 160 Fan",
+					subtitle = "Honda • 162cc • O clássico do delivery",
+					imageRes = "moto_sport_updated.png",
+					monthlyPrice = "R$ 220/semana",
+					consumption = "42-55 km/L",
+					details = listOf(
+						"Freio" to "Disco",
+						"Partida" to "Elétrica",
+						"Tanque" to "16.1L",
+						"Rodas" to "Liga leve",
+					),
+					specs = listOf(
+						"Motor" to "162cc OHC",
+						"Combustível" to "Flex",
+						"Ano" to "2026",
+					),
 				),
-				specs = listOf(
-					"Motor" to "160cc",
-					"Cor" to "Vermelha",
-					"Robustez" to "Uso diário",
+				MotoVariant(
+					title = "CG 160 Titan",
+					subtitle = "Honda • 162cc • Esportividade premium",
+					imageRes = "moto_premium.png",
+					monthlyPrice = "R$ 280/semana",
+					consumption = "40-52 km/L",
+					details = listOf(
+						"Freio" to "CBS / Disco",
+						"Partida" to "Elétrica",
+						"Tanque" to "16.1L",
+						"Rodas" to "Liga leve",
+					),
+					specs = listOf(
+						"Motor" to "162cc OHC",
+						"Combustível" to "Flex",
+						"Ano" to "2026",
+					),
 				),
-			),
-			MotoVariant(
-				title = "Elétrica",
-				subtitle = "Silenciosa e moderna",
-				imageRes = "moto_eletrica_new.png",
-				monthlyPrice = "R$ 580",
-				consumption = "Economia máxima",
-				details = listOf(
-					"Freio" to "Disco",
-					"Partida" to "Botão",
-					"Tanque" to "Sem tanque",
-					"Rodas" to "Liga leve",
+				MotoVariant(
+					title = "AZ160 Xtreme",
+					subtitle = "Avelloz • 160cc • Trail urbana robusta",
+					imageRes = "avelloz_160_black_new.png",
+					monthlyPrice = "R$ 210/semana",
+					consumption = "38-50 km/L",
+					details = listOf(
+						"Freio" to "Disco duplo",
+						"Partida" to "Elétrica",
+						"Tanque" to "12L",
+						"Rodas" to "Liga leve",
+					),
+					specs = listOf(
+						"Motor" to "160cc OHC",
+						"Combustível" to "Gasolina",
+						"Ano" to "2026",
+					),
 				),
-				specs = listOf(
-					"Motor" to "Elétrico",
-					"Cor" to "Azul",
-					"Autonomia" to "Longa duração",
+				MotoVariant(
+					title = "Ninja 250R",
+					subtitle = "Kawasaki • 249cc • Esportiva de alto desempenho",
+					imageRes = "moto_sport_esd.png",
+					monthlyPrice = "R$ 320/semana",
+					consumption = "28-36 km/L",
+					details = listOf(
+						"Freio" to "Disco",
+						"Partida" to "Elétrica",
+						"Tanque" to "17L",
+						"Rodas" to "Liga leve",
+					),
+					specs = listOf(
+						"Motor" to "249cc Bi-cilíndrico",
+						"Combustível" to "Gasolina",
+						"Ano" to "2012",
+					),
 				),
-			),
-			MotoVariant(
-				title = "Premium",
-				subtitle = "Conforto e presença",
-				imageRes = "moto_premium.png",
-				monthlyPrice = "R$ 740",
-				consumption = "Conforto premium",
-				details = listOf(
-					"Freio" to "Disco",
-					"Partida" to "Elétrica",
-					"Tanque" to "12L",
-					"Rodas" to "Liga leve",
+				MotoVariant(
+					title = "CG 160 Cargo",
+					subtitle = "Honda • 162cc • Baú e carga operacional",
+					imageRes = "hero_bg_moto2.png",
+					monthlyPrice = "R$ 220/semana",
+					consumption = "40-52 km/L",
+					details = listOf(
+						"Freio" to "CBS",
+						"Partida" to "Elétrica",
+						"Tanque" to "16.1L",
+						"Rodas" to "Aço reforçado",
+					),
+					specs = listOf(
+						"Motor" to "162cc OHC",
+						"Combustível" to "Flex",
+						"Ano" to "2026",
+					),
 				),
-				specs = listOf(
-					"Motor" to "Premium",
-					"Cor" to "Branca",
-					"Acabamento" to "Top",
-				),
-			),
-		)
+			)
+		}
 	}
 
 	var selectedIndex by remember { mutableIntStateOf(0) }
-	val selected = variants[selectedIndex]
+	val selected = variants.getOrElse(selectedIndex) { variants.first() }
 
 	Scaffold(
 		modifier = modifier.safeDrawingPadding(),
@@ -167,7 +271,7 @@ fun MotosScreen(
 			HeaderBar(onBack = onBack)
 			MotoCategoryRow(
 				variants = variants,
-				selectedIndex = selectedIndex,
+				selectedIndex = selectedIndex.coerceAtMost(variants.lastIndex),
 				onSelected = { selectedIndex = it },
 			)
 
@@ -225,6 +329,22 @@ fun MotosScreen(
 	}
 }
 
+private fun resolveImageResForModelo(modelo: MotoModeloResponse): String {
+	val nome = modelo.nome?.lowercase().orEmpty()
+	val marca = modelo.marca?.lowercase().orEmpty()
+
+	return when {
+		nome.contains("pop") -> "moto_sport.png"
+		nome.contains("biz") -> "moto_eletrica_new.png"
+		nome.contains("titan") -> "moto_premium.png"
+		nome.contains("cargo") -> "hero_bg_moto2.png"
+		nome.contains("fan") -> "moto_sport_updated.png"
+		nome.contains("avelloz") || marca.contains("avelloz") || nome.contains("az160") -> "avelloz_160_black_new.png"
+		nome.contains("ninja") || marca.contains("kawasaki") -> "moto_sport_esd.png"
+		else -> "moto_sport_updated.png"
+	}
+}
+
 @Composable
 private fun HeaderBar(onBack: () -> Unit) {
 	Row(
@@ -241,7 +361,7 @@ private fun HeaderBar(onBack: () -> Unit) {
 			)
 		}
 		Text(
-			text = "MOTOS",
+			text = "MOTOS CADASTRADAS",
 			color = MaterialTheme.colorScheme.onSurface,
 			fontSize = 14.sp,
 			fontWeight = FontWeight.Black,

@@ -55,8 +55,6 @@ fun CustomerDashboardHomeTab(
 	) {
 		CustomerPlanCard(contract = contract)
 		
-		CustomerDashboardTabs(activeTab = activeTab, onTabChange = onTabChange)
-		
 		CustomerQuickActions(actions = data.quickActions, onActionClick = onActionClick)
 		
 		Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {

@@ -34,11 +34,13 @@ fun Screens(
 ) {
 	val state = viewModel.uiState.collectAsStateWithLifecycle().value
 	var appSection by remember { mutableStateOf(AppSection.AUTH) }
+	var autoOpenCadastro by remember { mutableStateOf(false) }
 	val backStack = remember { mutableStateListOf<AppSection>() }
 
 	fun resetTo(section: AppSection) {
 		backStack.clear()
 		appSection = section
+		autoOpenCadastro = false
 	}
 
 	fun rootSection(): AppSection = if (state.isAuthenticated) AppSection.DASHBOARD else AppSection.AUTH
@@ -97,7 +99,10 @@ fun Screens(
 
 				appSection == AppSection.PLANOS -> PlanosScreen(
 					onBack = ::navigateBack,
-					onComprarPlano = { _ -> navigateTo(rootSection()) },
+					onComprarPlano = { _ ->
+						autoOpenCadastro = true
+						navigateTo(AppSection.AUTH)
+					},
 					modifier = Modifier.fillMaxSize(),
 				)
 
@@ -105,7 +110,11 @@ fun Screens(
 					onBack = ::navigateBack,
 					onPlanosClick = { navigateTo(AppSection.PLANOS) },
 					onOndeEstamosClick = { navigateTo(AppSection.ONDE_ESTAMOS) },
-					onRentClick = { navigateTo(AppSection.AUTH) },
+					onRentClick = {
+						autoOpenCadastro = true
+						navigateTo(AppSection.AUTH)
+					},
+					api = api,
 					modifier = Modifier.fillMaxSize(),
 				)
 
@@ -126,17 +135,6 @@ fun Screens(
 					modifier = Modifier.fillMaxSize(),
 				)
 
-				state.isAuthenticated && state.contractId.isNullOrBlank() -> OnboardingSalesScreen(
-					authState = state,
-					api = api,
-					onLogout = {
-						resetTo(AppSection.AUTH)
-						viewModel.logout()
-					},
-					onRefreshSession = viewModel::refreshSession,
-					modifier = Modifier.fillMaxSize(),
-				)
-
 				state.isAuthenticated -> CustomerDashboardRoute(
 					authState = state,
 					api = api,
@@ -148,13 +146,17 @@ fun Screens(
 					modifier = Modifier.fillMaxSize(),
 				)
 
-				appSection == AppSection.AUTH -> AuthScreen(
-					viewModel = viewModel,
-					onMotosClick = { navigateTo(AppSection.MOTOS) },
-					onPlanosClick = { navigateTo(AppSection.PLANOS) },
-					onOndeEstamosClick = { navigateTo(AppSection.ONDE_ESTAMOS) },
-					modifier = Modifier.fillMaxSize(),
-				)
+				appSection == AppSection.AUTH -> {
+					val currentOpenCad = autoOpenCadastro
+					AuthScreen(
+						viewModel = viewModel,
+						onMotosClick = { navigateTo(AppSection.MOTOS) },
+						onPlanosClick = { navigateTo(AppSection.PLANOS) },
+						onOndeEstamosClick = { navigateTo(AppSection.ONDE_ESTAMOS) },
+						openCadastroOnStart = currentOpenCad,
+						modifier = Modifier.fillMaxSize(),
+					)
+				}
 
 				else -> CustomerDashboardRoute(
 					authState = state,

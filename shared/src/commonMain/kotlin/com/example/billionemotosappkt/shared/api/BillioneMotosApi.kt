@@ -74,23 +74,42 @@ class BillioneMotosApi(
         if (sendAuth && config.accessTokenProvider().isNullOrBlank()) {
             attemptTokenRefresh()
         }
-        val response = execute()
+        val response = runCatching { execute() }.getOrNull() ?: return null
         if (sendAuth && (response.status.value == 401 || response.status.value == 403)) {
             if (attemptTokenRefresh()) {
-                return execute().readBytes()
+                val retry = runCatching { execute() }.getOrNull() ?: return null
+                if (retry.status.value in 200..299) {
+                    return retry.readBytes()
+                }
             }
             return null
         }
 
-        return response.readBytes()
+        if (response.status.value in 200..299) {
+            return response.readBytes()
+        }
+        return null
     }
 
     private fun resolveUrl(url: String): String {
-        if (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true)) {
-            return url
-        }
+        var rawUrl = url.trim()
         val base = config.baseUrl.trimEnd('/')
-        return if (url.startsWith('/')) "$base$url" else "$base/$url"
+
+        if (rawUrl.startsWith("http://localhost:3000", ignoreCase = true)) {
+            rawUrl = base + rawUrl.substring("http://localhost:3000".length)
+        } else if (rawUrl.startsWith("http://127.0.0.1:3000", ignoreCase = true)) {
+            rawUrl = base + rawUrl.substring("http://127.0.0.1:3000".length)
+        } else if (rawUrl.startsWith("http://localhost:", ignoreCase = true)) {
+            val pathIndex = rawUrl.indexOf('/', 7)
+            rawUrl = if (pathIndex != -1) base + rawUrl.substring(pathIndex) else base
+        } else if (rawUrl.startsWith("http://127.0.0.1:", ignoreCase = true)) {
+            val pathIndex = rawUrl.indexOf('/', 7)
+            rawUrl = if (pathIndex != -1) base + rawUrl.substring(pathIndex) else base
+        } else if (rawUrl.startsWith("http://", ignoreCase = true) || rawUrl.startsWith("https://", ignoreCase = true)) {
+            return rawUrl
+        }
+
+        return if (rawUrl.startsWith('/')) "$base$rawUrl" else "$base/$rawUrl"
     }
 
     private fun shouldSendAuth(resolvedUrl: String): Boolean {

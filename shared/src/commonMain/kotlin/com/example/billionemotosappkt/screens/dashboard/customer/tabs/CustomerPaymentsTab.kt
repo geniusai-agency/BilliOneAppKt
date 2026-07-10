@@ -26,6 +26,7 @@ import com.example.billionemotosappkt.screens.dashboard.customer.CustomerPayment
 @Composable
 fun CustomerPaymentsTab(
 	payments: List<CustomerPayment>,
+	contractCount: Int = 0,
 	onBack: () -> Unit,
 	onDownloadBoletoClick: (CustomerPayment) -> Unit = {},
 	modifier: Modifier = Modifier,
@@ -37,7 +38,7 @@ fun CustomerPaymentsTab(
 
 
 		CustomerMetricCards(
-			contractCount = 1,
+			contractCount = contractCount,
 			paidCount = payments.count { it.status == CustomerPaymentStatus.PAID },
 			openCount = payments.count { it.status != CustomerPaymentStatus.PAID },
 		)

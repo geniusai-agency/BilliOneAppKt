@@ -1,5 +1,12 @@
 package com.example.billionemotosappkt.screens.planos
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,31 +19,34 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.LocalOffer
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,15 +54,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.billionemotosappkt.components.ActionButton
-import com.example.billionemotosappkt.ui.theme.AppDimens
-import com.example.billionemotosappkt.ui.theme.BilliOneMotosAppKtTheme
 
+private data class SellingPlan(
+	val id: String,
+	val name: String,
+	val price: String,
+	val tag: String,
+	val isPopular: Boolean = false,
+	val highlight: String,
+	val description: String,
+	val benefits: List<String>,
+	val inclusions: List<String>,
+	val accent: Color,
+)
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun PlanosScreen(
 	onBack: () -> Unit,
@@ -65,30 +88,51 @@ fun PlanosScreen(
 				id = "start",
 				name = "Billione Start",
 				price = "R$ 490/mês",
-				tag = "Entrada reduzida",
-				highlight = "Comece pagando menos e entre no ritmo.",
-				description = "Para quem quer começar rápido com valor leve e um caminho simples até a moto.",
-				benefits = listOf("Parcelas mais leves", "Suporte para liberação", "Ideal para começar"),
+				tag = "ENTRADA REDUZIDA",
+				isPopular = false,
+				highlight = "Comece pagando menos e entre no ritmo sem pesadelo no orçamento.",
+				description = "Ideal para quem quer valor de parcela mais leve e aprovação facilitada para rodar rápido.",
+				benefits = listOf("Parcelas mais leves", "Sem burocracia", "Ideal para iniciar"),
+				inclusions = listOf(
+					"Manutenção preventiva de rotina inclusa",
+					"Rastreamento IoT 24h via GPS",
+					"Suporte prioritário via WhatsApp e App",
+					"Opção de compra programada no final",
+				),
 				accent = Color(0xFF2EDB63),
 			),
 			SellingPlan(
 				id = "conquista",
 				name = "Billione Conquista",
 				price = "R$ 660/mês",
-				tag = "Mais escolhido",
-				highlight = "O plano mais equilibrado para uso diário e compra no final.",
-				description = "Combina preço, prazo e segurança para você rodar tranquilo com chance real de virar dono.",
-				benefits = listOf("Compra no final", "Equilíbrio entre custo e prazo", "Melhor custo-benefício"),
+				tag = "MAIS ESCOLHIDO",
+				isPopular = true,
+				highlight = "O plano mais equilibrado para uso diário com chance real de virar dono.",
+				description = "Combina preço justo, prazo e máxima segurança para você rodar tranquilo e conquistar sua moto.",
+				benefits = listOf("Compra no final", "Melhor Custo-Benefício", "Seguro & IoT Inclusos"),
+				inclusions = listOf(
+					"Plano com transferência de propriedade em 36M",
+					"Revisões de quilometragem e troca de óleo",
+					"Rastreador com bloqueio remoto de ignição",
+					"Moto substituta em caso de manutenção prolongada",
+				),
 				accent = Color(0xFF20D86B),
 			),
 			SellingPlan(
 				id = "premium",
 				name = "Billione Premium",
 				price = "R$ 740/mês",
-				tag = "Mais completo",
-				highlight = "Mais presença, mais conforto e a sensação de plano top.",
-				description = "Pensado para quem quer uma experiência mais premium e um pacote mais forte de benefícios.",
-				benefits = listOf("Acabamento superior", "Mais conforto", "Perfil premium"),
+				tag = "COMPLETO VIP",
+				isPopular = false,
+				highlight = "Máximo conforto, prioridade absoluta no atendimento e frota topo de linha.",
+				description = "Para quem busca a melhor experiência, sem preocupação com manutenção ou burocracia.",
+				benefits = listOf("Atendimento VIP 24h", "Peças Top de Linha", "Prioridade na Frota"),
+				inclusions = listOf(
+					"Pacote completo de revisões e desgaste natural",
+					"Rastreamento com suporte presencial em sinistros",
+					"Atendimento VIP sem fila de espera",
+					"Transferência garantida ao fim do contrato",
+				),
 				accent = Color(0xFF46E07C),
 			),
 		)
@@ -98,32 +142,15 @@ fun PlanosScreen(
 
 	Scaffold(
 		modifier = modifier.fillMaxSize().safeDrawingPadding(),
+		containerColor = Color(0xFF060907),
 		topBar = {
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(horizontal = AppDimens.ScreenPadding, vertical = 12.dp),
-				verticalAlignment = Alignment.CenterVertically,
-			) {
-				TextButton(onClick = onBack) {
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						Icon(
-							imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-							contentDescription = "Voltar",
-							tint = MaterialTheme.colorScheme.onSurface,
-						)
-						Spacer(modifier = Modifier.size(4.dp))
-						Text("Voltar", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-					}
-				}
-				Spacer(modifier = Modifier.size(4.dp))
-				Text(
-					text = "NOSSOS PLANOS",
-					style = MaterialTheme.typography.titleMedium,
-					fontWeight = FontWeight.Black,
-					color = MaterialTheme.colorScheme.onSurface,
-				)
-			}
+			HeaderBar(onBack = onBack)
+		},
+		bottomBar = {
+			StickyBottomBar(
+				selectedPlan = selected,
+				onConfirm = { onComprarPlano(selected.id) },
+			)
 		},
 	) { innerPadding ->
 		Box(
@@ -131,15 +158,16 @@ fun PlanosScreen(
 				.fillMaxSize()
 				.padding(innerPadding),
 		) {
+			// Fundo com gradiente sutil dark neon
 			Box(
 				modifier = Modifier
 					.fillMaxSize()
 					.background(
 						Brush.verticalGradient(
 							colors = listOf(
-								Color(0xFF050806),
-								Color(0xFF0B110D),
-								Color(0xFF050806),
+								Color(0xFF090E0B),
+								Color(0xFF060907),
+								Color(0xFF040605),
 							),
 						),
 					),
@@ -149,222 +177,419 @@ fun PlanosScreen(
 				modifier = Modifier
 					.fillMaxSize()
 					.verticalScroll(rememberScrollState())
-					.padding(horizontal = AppDimens.ScreenPadding, vertical = 8.dp),
+					.padding(horizontal = 16.dp, vertical = 10.dp),
 				verticalArrangement = Arrangement.spacedBy(16.dp),
 			) {
-				HeroPlanCard(selected = selected)
-				PlanStatsRow()
+				// Hero Header Banner
+				HeroBannerCard(selectedPlan = selected)
 
+				// Três pilares de confiança
+				TrustPillarsRow()
+
+				// Título da seção de seleção
 				Text(
-					text = "Escolha sua melhor opção",
-					style = MaterialTheme.typography.labelLarge,
+					text = "SELECIONE SEU PLANO",
+					style = MaterialTheme.typography.labelMedium.copy(
+						fontSize = 12.sp,
+						letterSpacing = 1.5.sp,
+					),
 					fontWeight = FontWeight.Black,
-					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					color = Color(0xFF71F58D),
+					modifier = Modifier.padding(top = 4.dp, start = 4.dp),
 				)
 
+				// Cards dos Planos
 				plans.forEachIndexed { index, plan ->
-					PlanSellingCard(
+					ModernPlanCard(
 						plan = plan,
 						selected = index == selectedIndex,
 						onClick = { selectedIndex = index },
 					)
 				}
 
-				SelectedPlanDetailCard(plan = selected)
+				// O que está incluso no plano selecionado
+				InclusionsCard(plan = selected)
+
+				// Como Funciona em 3 Passos
 				HowItWorksCard()
-				FearReversalCard()
 
-				ActionButton(
-					text = "QUERO ESTE PLANO",
-					onClick = { onComprarPlano(selected.id) },
-					containerColor = selected.accent,
-					pressedContainerColor = selected.accent.copy(alpha = 0.88f),
-					contentColor = Color.Black,
-					borderColor = selected.accent,
-					pressedBorderColor = selected.accent,
-					glowPulse = false,
-				)
+				// Seção FAQ / Reversão de Dúvidas
+				FaqAccordionCard()
 
-				Button(
-					onClick = onBack,
-					colors = ButtonDefaults.buttonColors(
-						containerColor = Color.Transparent,
-						contentColor = MaterialTheme.colorScheme.onSurface,
-					),
-					modifier = Modifier.fillMaxWidth(),
-				) {
-					Text("Voltar")
-				}
-
-				Spacer(modifier = Modifier.height(8.dp))
+				Spacer(modifier = Modifier.height(16.dp))
 			}
 		}
 	}
 }
 
 @Composable
-private fun HeroPlanCard(selected: SellingPlan) {
-	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.14f)),
-		shape = RoundedCornerShape(28.dp),
+private fun HeaderBar(onBack: () -> Unit) {
+	Row(
 		modifier = Modifier
 			.fillMaxWidth()
-			.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.24f), RoundedCornerShape(28.dp)),
+			.background(Color(0xFF060907).copy(alpha = 0.95f))
+			.padding(horizontal = 16.dp, vertical = 12.dp),
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.SpaceBetween,
 	) {
-		Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(12.dp),
+		) {
+			Box(
+				modifier = Modifier
+					.size(40.dp)
+					.clip(CircleShape)
+					.background(Color(0x1AFFFFFF))
+					.border(1.dp, Color(0x33FFFFFF), CircleShape)
+					.clickable(onClick = onBack),
+				contentAlignment = Alignment.Center,
+			) {
+				Icon(
+					imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+					contentDescription = "Voltar",
+					tint = Color.White,
+					modifier = Modifier.size(20.dp),
+				)
+			}
+
+			Column {
+				Text(
+					text = "NOSSOS PLANOS",
+					style = MaterialTheme.typography.titleMedium,
+					fontWeight = FontWeight.Black,
+					color = Color.White,
+					letterSpacing = 0.5.sp,
+				)
+				Text(
+					text = "Escolha e rode sem burocracia",
+					style = MaterialTheme.typography.bodySmall,
+					color = Color(0xFFA7B0AA),
+					fontSize = 11.sp,
+				)
+			}
+		}
+
+		Box(
+			modifier = Modifier
+				.clip(RoundedCornerShape(999.dp))
+				.background(Color(0x1F2EDB63))
+				.border(1.dp, Color(0x402EDB63), RoundedCornerShape(999.dp))
+				.padding(horizontal = 10.dp, vertical = 5.dp),
+		) {
+			Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+				Icon(
+					imageVector = Icons.Filled.Verified,
+					contentDescription = null,
+					tint = Color(0xFF2EDB63),
+					modifier = Modifier.size(14.dp),
+				)
+				Text(
+					text = "36M COMPRA",
+					fontSize = 10.sp,
+					fontWeight = FontWeight.Bold,
+					color = Color(0xFF2EDB63),
+				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun HeroBannerCard(selectedPlan: SellingPlan) {
+	Card(
+		shape = RoundedCornerShape(24.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1712)),
+		modifier = Modifier
+			.fillMaxWidth()
+			.border(
+				width = 1.dp,
+				brush = Brush.horizontalGradient(
+					colors = listOf(
+						Color(0xFF2EDB63).copy(alpha = 0.5f),
+						Color(0x1F2EDB63),
+						Color(0x05FFFFFF),
+					),
+				),
+				shape = RoundedCornerShape(24.dp),
+			),
+	) {
+		Column(
+			modifier = Modifier.padding(20.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp),
+		) {
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 			) {
-				Icon(
-					imageVector = Icons.Filled.Star,
-					contentDescription = null,
-					tint = selected.accent,
-					modifier = Modifier.size(18.dp),
-				)
-				Text(
-					text = selected.tag.uppercase(),
-					style = MaterialTheme.typography.labelSmall,
-					fontWeight = FontWeight.Black,
-					color = selected.accent,
-				)
+				Box(
+					modifier = Modifier
+						.clip(RoundedCornerShape(999.dp))
+						.background(Color(0xFF2EDB63).copy(alpha = 0.15f))
+						.border(1.dp, Color(0xFF2EDB63).copy(alpha = 0.35f), RoundedCornerShape(999.dp))
+						.padding(horizontal = 10.dp, vertical = 4.dp),
+				) {
+					Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+						Icon(
+							imageVector = Icons.Filled.Star,
+							contentDescription = null,
+							tint = Color(0xFF2EDB63),
+							modifier = Modifier.size(12.dp),
+						)
+						Text(
+							text = selectedPlan.tag,
+							style = MaterialTheme.typography.labelSmall,
+							fontWeight = FontWeight.Black,
+							color = Color(0xFF2EDB63),
+							fontSize = 10.sp,
+						)
+					}
+				}
 			}
 
 			Text(
-				text = "Leve a moto com um plano que faz sentido para o bolso e para o objetivo.",
+				text = "Sua moto 0km com parcela transparente.",
 				style = MaterialTheme.typography.headlineSmall,
 				fontWeight = FontWeight.Black,
-				color = MaterialTheme.colorScheme.onSurface,
-				lineHeight = 30.sp,
+				color = Color.White,
+				lineHeight = 28.sp,
 			)
 
 			Text(
-				text = selected.highlight,
+				text = selectedPlan.highlight,
 				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				lineHeight = 22.sp,
+				color = Color(0xFFB0BCB5),
+				lineHeight = 20.sp,
 			)
-
-			Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-				Badge(text = "Sem enrolação", accent = selected.accent)
-				Badge(text = "Foco em compra", accent = selected.accent)
-			}
 		}
 	}
 }
 
 @Composable
-private fun PlanStatsRow() {
-	Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-		StatPill(
+private fun TrustPillarsRow() {
+	Row(
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+		modifier = Modifier.fillMaxWidth(),
+	) {
+		TrustPill(
 			icon = Icons.Filled.Wallet,
-			title = "Parcela clara",
+			title = "Parcela Clara",
 			subtitle = "Sem surpresa",
 			modifier = Modifier.weight(1f),
 		)
-		StatPill(
-			icon = Icons.Filled.Security,
-			title = "Mais confiança",
-			subtitle = "Processo guiado",
+		TrustPill(
+			icon = Icons.Filled.Shield,
+			title = "Rastreio IoT",
+			subtitle = "Proteção 24h",
 			modifier = Modifier.weight(1f),
 		)
-		StatPill(
-			icon = Icons.Filled.LocalOffer,
-			title = "Oferta real",
-			subtitle = "Plano pra comprar",
+		TrustPill(
+			icon = Icons.Filled.Key,
+			title = "Vire Dono",
+			subtitle = "Plano 36M",
 			modifier = Modifier.weight(1f),
 		)
+	}
+}
+
+@Composable
+private fun TrustPill(
+	icon: ImageVector,
+	title: String,
+	subtitle: String,
+	modifier: Modifier = Modifier,
+) {
+	Card(
+		shape = RoundedCornerShape(16.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1511)),
+		modifier = modifier
+			.border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(16.dp)),
+	) {
+		Column(
+			modifier = Modifier.padding(12.dp),
+			verticalArrangement = Arrangement.spacedBy(4.dp),
+		) {
+			Icon(
+				imageVector = icon,
+				contentDescription = null,
+				tint = Color(0xFF2EDB63),
+				modifier = Modifier.size(20.dp),
+			)
+			Text(
+				text = title,
+				fontWeight = FontWeight.Bold,
+				color = Color.White,
+				fontSize = 12.sp,
+			)
+			Text(
+				text = subtitle,
+				color = Color(0xFF8A9690),
+				fontSize = 10.sp,
+			)
+		}
 	}
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun PlanSellingCard(
+private fun ModernPlanCard(
 	plan: SellingPlan,
 	selected: Boolean,
 	onClick: () -> Unit,
 ) {
-	// "R$ 490/mês" -> valor "R$ 490" + periodo "/mês"
+	val borderColor by animateColorAsState(
+		targetValue = if (selected) plan.accent else Color(0x22FFFFFF),
+		animationSpec = tween(300),
+	)
+
+	val containerColor by animateColorAsState(
+		targetValue = if (selected) Color(0xFF132017) else Color(0xFF0C120E),
+		animationSpec = tween(300),
+	)
+
 	val priceValue = plan.price.substringBefore("/").trim()
 	val pricePeriod = plan.price.substringAfter("/", "").trim()
 
 	Card(
 		onClick = onClick,
-		shape = RoundedCornerShape(24.dp),
-		colors = CardDefaults.cardColors(
-			containerColor = if (selected) plan.accent.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-		),
+		shape = RoundedCornerShape(22.dp),
+		colors = CardDefaults.cardColors(containerColor = containerColor),
 		modifier = Modifier
 			.fillMaxWidth()
 			.border(
-				if (selected) 1.5.dp else 1.dp,
-				if (selected) plan.accent.copy(alpha = 0.55f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.22f),
-				RoundedCornerShape(24.dp),
+				width = if (selected) 2.dp else 1.dp,
+				color = borderColor,
+				shape = RoundedCornerShape(22.dp),
 			),
 	) {
-		Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.spacedBy(12.dp),
-				verticalAlignment = Alignment.Top,
-			) {
-				SelectionDot(selected = selected, accent = plan.accent)
+		Column {
+			// Faixa de destaque para o plano popular
+			if (plan.isPopular) {
+				Box(
+					modifier = Modifier
+						.fillMaxWidth()
+						.background(
+							Brush.horizontalGradient(
+								colors = listOf(
+									Color(0xFF2EDB63),
+									Color(0xFF1B9E44),
+								),
+							),
+						)
+						.padding(vertical = 4.dp),
+					contentAlignment = Alignment.Center,
+				) {
+					Text(
+						text = "🔥 MAIS VENDIDO PELOS PILOTOS",
+						color = Color.Black,
+						fontSize = 10.sp,
+						fontWeight = FontWeight.Black,
+						letterSpacing = 1.sp,
+					)
+				}
+			}
 
-				// Bloco de texto ocupa o espaco restante (weight) para nao espremer o preco.
-				Column(
-					modifier = Modifier.weight(1f),
-					verticalArrangement = Arrangement.spacedBy(4.dp),
+			Column(
+				modifier = Modifier.padding(16.dp),
+				verticalArrangement = Arrangement.spacedBy(12.dp),
+			) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceBetween,
+					verticalAlignment = Alignment.Top,
 				) {
 					Row(
+						horizontalArrangement = Arrangement.spacedBy(10.dp),
 						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						modifier = Modifier.weight(1f),
 					) {
+						// Custom Radio Selector
+						Box(
+							modifier = Modifier
+								.size(24.dp)
+								.clip(CircleShape)
+								.background(if (selected) plan.accent.copy(alpha = 0.2f) else Color.Transparent)
+								.border(
+									2.dp,
+									if (selected) plan.accent else Color(0x66FFFFFF),
+									CircleShape,
+								),
+							contentAlignment = Alignment.Center,
+						) {
+							if (selected) {
+								Box(
+									modifier = Modifier
+										.size(10.dp)
+										.clip(CircleShape)
+										.background(plan.accent),
+								)
+							}
+						}
+
+						Column {
+							Text(
+								text = plan.name,
+								style = MaterialTheme.typography.titleMedium,
+								fontWeight = FontWeight.Black,
+								color = Color.White,
+							)
+							Text(
+								text = plan.tag,
+								fontSize = 10.sp,
+								fontWeight = FontWeight.Bold,
+								color = plan.accent,
+							)
+						}
+					}
+
+					// Preço
+					Column(horizontalAlignment = Alignment.End) {
 						Text(
-							text = plan.name,
-							style = MaterialTheme.typography.titleMedium,
+							text = priceValue,
+							style = MaterialTheme.typography.titleLarge,
 							fontWeight = FontWeight.Black,
-							color = MaterialTheme.colorScheme.onSurface,
+							color = plan.accent,
 						)
-						TagPill(text = plan.tag, accent = plan.accent)
-					}
-					Text(
-						text = plan.description,
-						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						lineHeight = 18.sp,
-					)
-				}
-
-				// Preco: largura natural, nunca quebra em varias linhas.
-				Column(horizontalAlignment = Alignment.End) {
-					Text(
-						text = priceValue,
-						style = MaterialTheme.typography.titleLarge,
-						fontWeight = FontWeight.Black,
-						color = plan.accent,
-						maxLines = 1,
-						softWrap = false,
-					)
-					if (pricePeriod.isNotBlank()) {
-						Text(
-							text = "/$pricePeriod",
-							fontSize = 12.sp,
-							fontWeight = FontWeight.SemiBold,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							maxLines = 1,
-							softWrap = false,
-						)
+						if (pricePeriod.isNotBlank()) {
+							Text(
+								text = "/$pricePeriod",
+								fontSize = 11.sp,
+								fontWeight = FontWeight.Medium,
+								color = Color(0xFF8A9690),
+							)
+						}
 					}
 				}
-			}
 
-			FlowRow(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.spacedBy(8.dp),
-				verticalArrangement = Arrangement.spacedBy(8.dp),
-			) {
-				plan.benefits.forEach { benefit ->
-					BenefitChip(text = benefit, accent = plan.accent)
+				Text(
+					text = plan.description,
+					style = MaterialTheme.typography.bodySmall,
+					color = Color(0xFFA7B0AA),
+					lineHeight = 18.sp,
+				)
+
+				// Benefits Chips
+				FlowRow(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.spacedBy(6.dp),
+					verticalArrangement = Arrangement.spacedBy(6.dp),
+				) {
+					plan.benefits.forEach { benefit ->
+						Box(
+							modifier = Modifier
+								.clip(RoundedCornerShape(999.dp))
+								.background(plan.accent.copy(alpha = 0.12f))
+								.border(1.dp, plan.accent.copy(alpha = 0.25f), RoundedCornerShape(999.dp))
+								.padding(horizontal = 10.dp, vertical = 4.dp),
+						) {
+							Text(
+								text = benefit,
+								color = plan.accent,
+								fontSize = 11.sp,
+								fontWeight = FontWeight.SemiBold,
+							)
+						}
+					}
 				}
 			}
 		}
@@ -372,78 +597,53 @@ private fun PlanSellingCard(
 }
 
 @Composable
-private fun SelectionDot(selected: Boolean, accent: Color) {
-	Box(
-		modifier = Modifier
-			.size(22.dp)
-			.background(
-				if (selected) accent.copy(alpha = 0.16f) else Color.Transparent,
-				CircleShape,
-			)
-			.border(
-				2.dp,
-				if (selected) accent else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-				CircleShape,
-			),
-		contentAlignment = Alignment.Center,
-	) {
-		if (selected) {
-			Box(
-				modifier = Modifier
-					.size(10.dp)
-					.background(accent, CircleShape),
-			)
-		}
-	}
-}
-
-@Composable
-private fun TagPill(text: String, accent: Color) {
-	Box(
-		modifier = Modifier
-			.background(accent.copy(alpha = 0.14f), RoundedCornerShape(999.dp))
-			.padding(horizontal = 8.dp, vertical = 3.dp),
-	) {
-		Text(
-			text = text.uppercase(),
-			color = accent,
-			fontSize = 9.sp,
-			fontWeight = FontWeight.Black,
-			maxLines = 1,
-			softWrap = false,
-		)
-	}
-}
-
-@Composable
-private fun SelectedPlanDetailCard(plan: SellingPlan) {
+private fun InclusionsCard(plan: SellingPlan) {
 	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.14f)),
-		shape = RoundedCornerShape(24.dp),
+		shape = RoundedCornerShape(22.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0E1410)),
 		modifier = Modifier
 			.fillMaxWidth()
-			.border(1.dp, plan.accent.copy(alpha = 0.24f), RoundedCornerShape(24.dp)),
+			.border(1.dp, plan.accent.copy(alpha = 0.3f), RoundedCornerShape(22.dp)),
 	) {
-		Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-			Text(
-				text = "O que você leva com ${plan.name}",
-				style = MaterialTheme.typography.titleMedium,
-				fontWeight = FontWeight.Black,
-				color = MaterialTheme.colorScheme.onSurface,
-			)
-			plan.benefits.forEach { benefit ->
-				Row(verticalAlignment = Alignment.CenterVertically) {
+		Column(
+			modifier = Modifier.padding(18.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp),
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(8.dp),
+			) {
+				Icon(
+					imageVector = Icons.Filled.Verified,
+					contentDescription = null,
+					tint = plan.accent,
+					modifier = Modifier.size(20.dp),
+				)
+				Text(
+					text = "INCLUSO NO SEU ${plan.name.uppercase()}",
+					style = MaterialTheme.typography.titleSmall,
+					fontWeight = FontWeight.Black,
+					color = Color.White,
+					letterSpacing = 0.5.sp,
+				)
+			}
+
+			plan.inclusions.forEach { item ->
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(10.dp),
+				) {
 					Icon(
 						imageVector = Icons.Filled.CheckCircle,
 						contentDescription = null,
 						tint = plan.accent,
 						modifier = Modifier.size(18.dp),
 					)
-					Spacer(modifier = Modifier.size(10.dp))
 					Text(
-						text = benefit,
+						text = item,
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = Color(0xFFD0D7D3),
+						fontSize = 13.sp,
 					)
 				}
 			}
@@ -454,117 +654,231 @@ private fun SelectedPlanDetailCard(plan: SellingPlan) {
 @Composable
 private fun HowItWorksCard() {
 	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f)),
-		shape = RoundedCornerShape(24.dp),
-		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(22.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0A0F0C)),
+		modifier = Modifier
+			.fillMaxWidth()
+			.border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(22.dp)),
 	) {
-		Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+		Column(
+			modifier = Modifier.padding(18.dp),
+			verticalArrangement = Arrangement.spacedBy(14.dp),
+		) {
 			Text(
-				text = "Como funciona",
-				style = MaterialTheme.typography.titleMedium,
+				text = "COMO FUNCIONA A CONTRATAÇÃO",
+				style = MaterialTheme.typography.titleSmall,
 				fontWeight = FontWeight.Black,
-				color = MaterialTheme.colorScheme.onSurface,
+				color = Color.White,
+				letterSpacing = 0.5.sp,
 			)
-			StepRow(step = "1", title = "Escolha seu plano", subtitle = "Veja o valor e o que inclui.")
-			StepRow(step = "2", title = "Fale com o time", subtitle = "A gente valida o melhor caminho.")
-			StepRow(step = "3", title = "Comece a rodar", subtitle = "Seu contrato entra no fluxo certo.")
+
+			StepItem(
+				number = "1",
+				title = "Escolha seu plano",
+				description = "Selecione o plano que cabe no seu bolso nesta tela.",
+			)
+
+			StepItem(
+				number = "2",
+				title = "Cadastre seus dados",
+				description = "Envie foto da CNH/RG para análise simplificada.",
+			)
+
+			StepItem(
+				number = "3",
+				title = "Assine e retire sua moto",
+				description = "Assinatura digital direta e agendamento da retirada.",
+			)
 		}
 	}
 }
 
 @Composable
-private fun FearReversalCard() {
-	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)),
-		shape = RoundedCornerShape(24.dp),
-		modifier = Modifier.fillMaxWidth(),
+private fun StepItem(number: String, title: String, description: String) {
+	Row(
+		horizontalArrangement = Arrangement.spacedBy(12.dp),
+		verticalAlignment = Alignment.Top,
 	) {
-		Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-			Text(
-				text = "Quer começar sem medo?",
-				style = MaterialTheme.typography.titleMedium,
-				fontWeight = FontWeight.Black,
-				color = MaterialTheme.colorScheme.onSurface,
-			)
-			Text(
-				text = "Mostramos o valor, o benefício e o caminho. Sem telas confusas, sem promessa vaga.",
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-			)
-		}
-	}
-}
-
-@Composable
-private fun StepRow(step: String, title: String, subtitle: String) {
-	Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 		Box(
 			modifier = Modifier
 				.size(28.dp)
-				.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), CircleShape),
+				.clip(CircleShape)
+				.background(Color(0xFF2EDB63).copy(alpha = 0.2f))
+				.border(1.dp, Color(0xFF2EDB63), CircleShape),
 			contentAlignment = Alignment.Center,
 		) {
-			Text(step, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
+			Text(
+				text = number,
+				fontWeight = FontWeight.Black,
+				color = Color(0xFF2EDB63),
+				fontSize = 13.sp,
+			)
 		}
-		Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
-			Text(title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-			Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+
+		Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+			Text(
+				text = title,
+				fontWeight = FontWeight.Bold,
+				color = Color.White,
+				fontSize = 13.sp,
+			)
+			Text(
+				text = description,
+				color = Color(0xFFA7B0AA),
+				fontSize = 12.sp,
+				lineHeight = 16.sp,
+			)
 		}
 	}
 }
 
 @Composable
-private fun Badge(text: String, accent: Color) {
-	Box(
-		modifier = Modifier
-			.background(accent.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
-			.border(1.dp, accent.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
-			.padding(horizontal = 12.dp, vertical = 6.dp),
-	) {
-		Text(text = text, color = accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-	}
-}
+private fun FaqAccordionCard() {
+	var expandedIndex by remember { mutableIntStateOf(-1) }
 
-@Composable
-private fun BenefitChip(text: String, accent: Color) {
-	Box(
-		modifier = Modifier
-			.background(accent.copy(alpha = 0.10f), RoundedCornerShape(999.dp))
-			.padding(horizontal = 10.dp, vertical = 6.dp),
-	) {
-		Text(text = text, color = accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+	val faqs = remember {
+		listOf(
+			"Preciso ter nome limpo no SPC/Serasa?" to "Não exigimos aprovação bancária tradicional. Realizamos uma análise própria e flexível focada no seu perfil de uso.",
+			"A moto realmente vira minha no final?" to "Sim! Ao concluir as 36 parcelas do contrato, iniciamos o processo de transferência definitiva de propriedade para seu nome.",
+			"Como funciona a manutenção inclusa?" to "Revisões preventivas e peças de desgaste natural são cobertas pela nossa rede credenciada de oficinas parceiras.",
+		)
 	}
-}
 
-@Composable
-private fun StatPill(
-	icon: androidx.compose.ui.graphics.vector.ImageVector,
-	title: String,
-	subtitle: String,
-	modifier: Modifier = Modifier,
-) {
 	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f)),
-		shape = RoundedCornerShape(20.dp),
-		modifier = modifier.height(96.dp),
+		shape = RoundedCornerShape(22.dp),
+		colors = CardDefaults.cardColors(containerColor = Color(0xFF0A0F0C)),
+		modifier = Modifier
+			.fillMaxWidth()
+			.border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(22.dp)),
 	) {
-		Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-			Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-			Text(title, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
-			Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+		Column(
+			modifier = Modifier.padding(18.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp),
+		) {
+			Text(
+				text = "DÚVIDAS FREQUENTES",
+				style = MaterialTheme.typography.titleSmall,
+				fontWeight = FontWeight.Black,
+				color = Color.White,
+				letterSpacing = 0.5.sp,
+			)
+
+			faqs.forEachIndexed { index, (question, answer) ->
+				val expanded = expandedIndex == index
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clip(RoundedCornerShape(12.dp))
+						.background(Color(0x10FFFFFF))
+						.clickable {
+							expandedIndex = if (expanded) -1 else index
+						}
+						.padding(12.dp),
+				) {
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.SpaceBetween,
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						Text(
+							text = question,
+							fontWeight = FontWeight.Bold,
+							color = Color.White,
+							fontSize = 13.sp,
+							modifier = Modifier.weight(1f),
+						)
+						Icon(
+							imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+							contentDescription = null,
+							tint = Color(0xFF2EDB63),
+						)
+					}
+
+					AnimatedVisibility(
+						visible = expanded,
+						enter = fadeIn() + expandVertically(),
+						exit = fadeOut() + shrinkVertically(),
+					) {
+						Text(
+							text = answer,
+							color = Color(0xFFA7B0AA),
+							fontSize = 12.sp,
+							lineHeight = 17.sp,
+							modifier = Modifier.padding(top = 8.dp),
+						)
+					}
+				}
+			}
 		}
 	}
 }
 
-private data class SellingPlan(
-	val id: String,
-	val name: String,
-	val price: String,
-	val tag: String,
-	val highlight: String,
-	val description: String,
-	val benefits: List<String>,
-	val accent: Color,
-)
+@Composable
+private fun StickyBottomBar(
+	selectedPlan: SellingPlan,
+	onConfirm: () -> Unit,
+) {
+	Surface(
+		color = Color(0xFF090E0B),
+		tonalElevation = 8.dp,
+		shadowElevation = 12.dp,
+		modifier = Modifier
+			.fillMaxWidth()
+			.border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 18.dp, vertical = 14.dp),
+			horizontalArrangement = Arrangement.SpaceBetween,
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Column(modifier = Modifier.weight(1f)) {
+				Text(
+					text = selectedPlan.name,
+					fontWeight = FontWeight.Black,
+					color = Color.White,
+					fontSize = 14.sp,
+				)
+				Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+					Text(
+						text = selectedPlan.price,
+						fontWeight = FontWeight.Black,
+						color = selectedPlan.accent,
+						fontSize = 16.sp,
+					)
+				}
+			}
 
+			Spacer(modifier = Modifier.width(12.dp))
 
+			Button(
+				onClick = onConfirm,
+				colors = ButtonDefaults.buttonColors(
+					containerColor = selectedPlan.accent,
+					contentColor = Color.Black,
+				),
+				shape = RoundedCornerShape(16.dp),
+				modifier = Modifier.height(48.dp),
+			) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(6.dp),
+				) {
+					Text(
+						text = "QUERO ESTE PLANO",
+						fontWeight = FontWeight.Black,
+						fontSize = 13.sp,
+						letterSpacing = 0.5.sp,
+					)
+					Icon(
+						imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+						contentDescription = null,
+						modifier = Modifier.size(16.dp),
+					)
+				}
+			}
+		}
+	}
+}

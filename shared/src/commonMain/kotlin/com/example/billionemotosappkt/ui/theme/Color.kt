@@ -7,6 +7,11 @@ val GreenPrimary = Color(0xFF24D35D)
 val GreenAccent = Color(0xFF44E06F)
 val GreenGlow = Color(0xFF71F58D)
 val DestructiveRed = Color(0xFFE5484D)
+val GoldAccent = Color(0xFFFFC107)
+val GoldGlow = Color(0xFFFFE082)
+val SurfaceGlass = Color(0x1A24D35D)
+val DarkGlassCard = Color(0x22162019)
+
 
 // Dark theme tokens
 val DarkBackground = Color(0xFF090C0A)

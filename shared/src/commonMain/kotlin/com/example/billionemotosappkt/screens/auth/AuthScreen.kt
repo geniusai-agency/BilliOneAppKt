@@ -80,13 +80,15 @@ fun AuthScreen(
     onMotosClick: () -> Unit = {},
     onPlanosClick: () -> Unit = {},
     onOndeEstamosClick: () -> Unit = {},
+    openCadastroOnStart: Boolean = false,
+    openLoginOnStart: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var loginOuCad by remember { mutableStateOf(0) }
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var loginOuCad by remember { mutableStateOf(if (openLoginOnStart) 1 else 0) }
+    var showBottomSheet by remember { mutableStateOf(openCadastroOnStart || openLoginOnStart) }
     var cadastroCpf by remember { mutableStateOf<String?>(null) }
 
     val imagens = listOf(

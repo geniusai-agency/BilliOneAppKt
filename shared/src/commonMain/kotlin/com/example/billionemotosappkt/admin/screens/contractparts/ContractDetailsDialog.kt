@@ -55,7 +55,8 @@ internal fun ContractDetailsDialog(
     onOpenPdf: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val hasPdf = !contrato.pdfUrl.isNullOrBlank()
+    val effectivePdfUrl = contrato.pdfUrl?.ifBlank { null } ?: "/contratos/${contrato.id}/pdf"
+    val hasPdf = true
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(

@@ -14,16 +14,18 @@ import com.example.billionemotosappkt.shared.utils.formatDayMonth
 
 fun CustomerDashboardSnapshot.toCustomerDashboardData(authState: AuthUiState): CustomerDashboardData {
 	val contracts = contratos.map { it.toCustomerContract() }
-	val payments = if (pagamentos.isEmpty()) {
-		contratos.flatMap { contrato ->
-			contrato.parcelas.map { parcela ->
-				parcela.toCustomerPayment(contrato.id)
-			}
+	val contractParcelas = contratos.flatMap { contrato ->
+		contrato.parcelas.map { parcela ->
+			parcela.toCustomerPayment(contrato.id)
 		}
+	}
+
+	val payments = if (contractParcelas.isNotEmpty()) {
+		contractParcelas.sortedByDescending { parseApiDate(it.dueDate) ?: 0L }
+	} else if (pagamentos.isNotEmpty()) {
+		pagamentos.map { it.toCustomerPayment() }
 	} else {
-		pagamentos.map { pagamento ->
-			pagamento.toCustomerPayment()
-		}
+		emptyList()
 	}
 
 	val activeCount = contracts.count { it.contractStatus.equals("ATIVO", ignoreCase = true) }

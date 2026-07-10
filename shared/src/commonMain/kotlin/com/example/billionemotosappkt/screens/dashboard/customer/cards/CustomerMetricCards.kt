@@ -20,16 +20,18 @@ import com.example.billionemotosappkt.ui.theme.BilliOneMotosAppKtTheme
 
 @Composable
 fun CustomerMetricCards(
-	contractCount: Int,
+	contractCount: Int = 1,
 	paidCount: Int,
 	openCount: Int,
+	totalInstallments: Int = paidCount + openCount,
 	modifier: Modifier = Modifier,
 ) {
+	val total = if (totalInstallments > 0) totalInstallments else if (paidCount + openCount > 0) paidCount + openCount else 12
 	val metrics = listOf(
 		MetricItem(
-			label = "Contrato",
-			value = contractCount.toString(),
-			helper = "Contrato principal vinculado",
+			label = "Parcelas",
+			value = total.toString(),
+			helper = "Total do contrato",
 			accent = true,
 		),
 		MetricItem(
