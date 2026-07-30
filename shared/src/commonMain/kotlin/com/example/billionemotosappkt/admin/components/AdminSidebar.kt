@@ -44,7 +44,7 @@ fun AdminSidebar(
         ) {
             BrandBlock()
             UserCard(authState = authState)
-            SidebarQuickMetrics(overview = overview)
+            SidebarQuickMetrics(overview = overviejw)
             SidebarActions()
             SidebarAttention(overview = overview)
             Spacer(modifier = Modifier.weight(1f))
